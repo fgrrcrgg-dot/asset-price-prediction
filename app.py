@@ -120,6 +120,32 @@ section[data-testid="stSidebar"] label { color: #3a3a4a !important; }
 div[data-baseweb="select"] > div {
     border-color: #0070FF !important; background: #ffffff !important; color: #1a1a2e !important;
 }
+/* ═══ Dropdown menu / popover — white bg, black text ═══ */
+div[data-baseweb="popover"] {
+    background: #FFFFFF !important;
+    border: 1px solid #e0e5ec !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10) !important;
+}
+div[data-baseweb="popover"] ul,
+div[data-baseweb="popover"] li,
+ul[data-baseweb="menu"],
+ul[role="listbox"],
+ul[role="listbox"] li {
+    background: #FFFFFF !important;
+    color: #1a1a2e !important;
+}
+ul[role="listbox"] li:hover,
+ul[role="listbox"] li[aria-selected="true"],
+ul[data-baseweb="menu"] li:hover {
+    background: #EBF3FF !important;
+    color: #1a1a2e !important;
+}
+/* Option text inside the menu */
+div[data-baseweb="popover"] [role="option"],
+div[data-baseweb="popover"] [data-baseweb="menu"] li div {
+    color: #1a1a2e !important;
+}
 
 /* ═══ SLIDER — ALL BLUE (nuclear override) ═══ */
 /* Thumb circle */
@@ -244,11 +270,24 @@ hr { border-color: #e0e5ec !important; }
 # DATA HELPERS
 # ════════════════════════════════════════════════════════════════════════
 @st.cache_data(show_spinner="Fetching market data …", ttl=3600)
-def load_data(tickers: list, start: str) -> pd.DataFrame:
-    raw = yf.download(tickers, start=start, auto_adjust=True, progress=False)
+def load_data(tickers: list, start: str, max_retries: int = 3) -> pd.DataFrame:
+    import time
+
+    raw = pd.DataFrame()
+    for attempt in range(1, max_retries + 1):
+        try:
+            raw = yf.download(tickers, start=start, auto_adjust=True, progress=False)
+            if not raw.empty:
+                break
+        except Exception:
+            pass
+        if attempt < max_retries:
+            time.sleep(2 * attempt)  # back-off: 2s, 4s
+
     if raw.empty:
-        st.error("No data returned from Yahoo Finance.")
+        st.error("No data returned from Yahoo Finance after multiple attempts.")
         st.stop()
+
     if isinstance(raw.columns, pd.MultiIndex):
         if "Close" in raw.columns.get_level_values(0):
             prices = raw["Close"].copy()
@@ -264,9 +303,32 @@ def load_data(tickers: list, start: str) -> pd.DataFrame:
                 prices.columns = tickers
         else:
             prices = raw.copy()
+
     for t in tickers:
         if t not in prices.columns:
             prices[t] = np.nan
+
+    # ── Retry individual tickers that came back all-NaN ────────────
+    for t in tickers:
+        if t in prices.columns and prices[t].dropna().empty:
+            for attempt in range(1, max_retries + 1):
+                try:
+                    single = yf.download(t, start=start, auto_adjust=True, progress=False)
+                    if not single.empty:
+                        if isinstance(single.columns, pd.MultiIndex):
+                            col = single["Close"].iloc[:, 0] if "Close" in single.columns.get_level_values(0) else single.iloc[:, 0]
+                        elif "Close" in single.columns:
+                            col = single["Close"]
+                        else:
+                            col = single.iloc[:, 0]
+                        prices[t] = col.reindex(prices.index)
+                        if prices[t].dropna().any():
+                            break
+                except Exception:
+                    pass
+                if attempt < max_retries:
+                    time.sleep(2 * attempt)
+
     return prices.dropna(how="all")
 
 
@@ -291,8 +353,9 @@ def safe_last(s: pd.Series, default=np.nan):
 def compute_metrics(prices: pd.DataFrame, ticker: str) -> dict:
     """Compute metrics for a single ticker. Prices should already be trimmed."""
     na = {
-        "Last Price": "N/A", "Ann. Return": "N/A", "Ann. Volatility": "N/A",
-        "Sharpe Ratio": "N/A", "RSI (14)": "N/A", "5-Day MA": "N/A", "20-Day MA": "N/A",
+        "Last Price": "N/A", "CAGR": "N/A", "Ann. Return": "N/A",
+        "Ann. Volatility": "N/A", "Sharpe Ratio": "N/A", "RSI (14)": "N/A",
+        "5-Day MA": "N/A", "20-Day MA": "N/A",
     }
     if ticker not in prices.columns:
         return na
@@ -310,6 +373,10 @@ def compute_metrics(prices: pd.DataFrame, ticker: str) -> dict:
     loss = (-delta.clip(upper=0)).rolling(14).mean()
     rsi = 100 - (100 / (1 + gain / loss))
 
+    # CAGR
+    years = (s.index[-1] - s.index[0]).days / 365.25
+    cagr = (s.iloc[-1] / s.iloc[0]) ** (1 / years) - 1 if years > 0 and s.iloc[0] > 0 else np.nan
+
     def f(v, sp):
         try:
             return "N/A" if pd.isna(v) else f"{v:{sp}}"
@@ -318,6 +385,7 @@ def compute_metrics(prices: pd.DataFrame, ticker: str) -> dict:
 
     return {
         "Last Price": f(s.iloc[-1], ",.2f"),
+        "CAGR": f(cagr, ".2%"),
         "Ann. Return": f(ann_ret, ".2%"),
         "Ann. Volatility": f(ann_vol, ".2%"),
         "Sharpe Ratio": f(sharpe, ".3f"),
@@ -655,11 +723,14 @@ else:
 
     if len(set_trimmed) >= 2:
         set_lr_t = log_returns(set_trimmed)
-        c1, c2, c3, c4 = st.columns(4)
+        set_years = (set_trimmed.index[-1] - set_trimmed.index[0]).days / 365.25
+        set_cagr = (set_trimmed.iloc[-1] / set_trimmed.iloc[0]) ** (1 / set_years) - 1 if set_years > 0 and set_trimmed.iloc[0] > 0 else 0
+        c1, c2, c3, c4, c5 = st.columns(5)
         c1.metric("Last Close", f"{set_trimmed.iloc[-1]:,.2f}")
-        c2.metric("Ann. Return", f"{set_lr_t.mean() * TRADING_DAYS:.2%}")
-        c3.metric("Ann. Volatility", f"{set_lr_t.std() * np.sqrt(TRADING_DAYS):.2%}")
-        c4.metric("Data Points", f"{len(set_trimmed):,}")
+        c2.metric("CAGR", f"{set_cagr:.2%}")
+        c3.metric("Ann. Return", f"{set_lr_t.mean() * TRADING_DAYS:.2%}")
+        c4.metric("Ann. Volatility", f"{set_lr_t.std() * np.sqrt(TRADING_DAYS):.2%}")
+        c5.metric("Data Points", f"{len(set_trimmed):,}")
         st.plotly_chart(price_chart(set_trimmed, f"SET Index ({set_span})"), use_container_width=True)
     else:
         st.info(f"Not enough data for {set_span} window.")
@@ -711,13 +782,16 @@ with section2_container:
 
     if len(stock_series_trimmed) >= 25:
         s_lr = log_returns(stock_series_trimmed)
-        m1, m2, m3, m4 = st.columns(4)
+        s_years = (stock_series_trimmed.index[-1] - stock_series_trimmed.index[0]).days / 365.25
+        s_cagr = (stock_series_trimmed.iloc[-1] / stock_series_trimmed.iloc[0]) ** (1 / s_years) - 1 if s_years > 0 and stock_series_trimmed.iloc[0] > 0 else 0
+        m1, m2, m3, m4, m5 = st.columns(5)
         m1.metric("Last Close", f"{stock_series_trimmed.iloc[-1]:,.2f}")
+        m2.metric("CAGR", f"{s_cagr:.2%}")
         ar = s_lr.mean() * TRADING_DAYS
-        m2.metric("Ann. Return", f"{ar:.2%}")
+        m3.metric("Ann. Return", f"{ar:.2%}")
         av = s_lr.std() * np.sqrt(TRADING_DAYS)
-        m3.metric("Ann. Volatility", f"{av:.2%}")
-        m4.metric("Sharpe Ratio", f"{(ar - RF_RATE) / av if av else 0:.3f}")
+        m4.metric("Ann. Volatility", f"{av:.2%}")
+        m5.metric("Sharpe Ratio", f"{(ar - RF_RATE) / av if av else 0:.3f}")
     else:
         st.warning(f"⚠️ Insufficient price data for **{selected_label}** in {pred_span} window.")
 
