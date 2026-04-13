@@ -12,7 +12,7 @@ from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
 import warnings, itertools
 
-# ── Optional heavy imports (graceful fallback) ──────────────────────────
+# ── Optional heavy imports ──────────────────────────────────────────────
 try:
     from statsmodels.tsa.arima.model import ARIMA
     from arch import arch_model
@@ -46,15 +46,14 @@ TIMESPAN_MAP = {
     "2Y": 504, "5Y": 1260, "10Y": 2520, "20Y": 5040,
 }
 TRADING_DAYS = 252
-RF_RATE = 0.02  # risk-free proxy
+RF_RATE = 0.02
 
-# ── Colour palette ─────────────────────────────────────────────────────
+# ── Colours ────────────────────────────────────────────────────────────
 BLUE = "#0070FF"
 BLUE_LIGHT = "#D6EAFF"
 ACCENT_RED = "#E74C3C"
 ACCENT_GREEN = "#27AE60"
 ACCENT_ORANGE = "#F39C12"
-TEXT_BLACK = "#1a1a2e"
 
 # ════════════════════════════════════════════════════════════════════════
 # PAGE SETUP
@@ -63,7 +62,6 @@ st.set_page_config(
     page_title="Thai Equity Prediction Model", layout="wide", page_icon="📈"
 )
 
-# ── Custom CSS — light theme, #0070FF blue everywhere ──────────────────
 st.markdown(
     """
 <style>
@@ -73,174 +71,170 @@ html, body, [class*="st-"] {
     font-family: 'Source Sans Pro', sans-serif;
 }
 
-/* ── Force light background everywhere ── */
+/* ═══ Force light background ═══ */
 .stApp, .main, .block-container {
     background-color: #FFFFFF !important;
     color: #1a1a2e !important;
 }
-
 h1 { font-weight: 700; letter-spacing: -0.5px; color: #1a1a2e !important; }
 h2 { font-weight: 600; color: #1a1a2e !important; }
 h3 { font-weight: 600; color: #1a1a2e !important; }
-p, li, span { color: #1a1a2e; }
+p, li, span, label { color: #1a1a2e; }
 
-/* ── Metric cards ── */
+/* ═══ Metric cards ═══ */
 div[data-testid="stMetric"] {
-    background: #f8f9fb;
-    border: 1px solid #e0e5ec;
-    border-radius: 10px;
-    padding: 16px 20px;
+    background: #f8f9fb; border: 1px solid #e0e5ec;
+    border-radius: 10px; padding: 16px 20px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 div[data-testid="stMetric"] label {
-    font-size: 0.8rem !important;
-    color: #606475 !important;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-size: 0.8rem !important; color: #606475 !important;
+    text-transform: uppercase; letter-spacing: 0.5px;
 }
 div[data-testid="stMetric"] [data-testid="stMetricValue"] {
-    font-size: 1.5rem !important;
-    font-weight: 700 !important;
+    font-size: 1.5rem !important; font-weight: 700 !important;
     color: #1a1a2e !important;
 }
 
-/* ── Tabs — ALL blue (active tab highlight) ── */
-div.stTabs [data-baseweb="tab-list"] {
-    gap: 4px;
-    border-bottom: 2px solid #e0e5ec;
-}
+/* ═══ Tabs — all blue ═══ */
+div.stTabs [data-baseweb="tab-list"] { gap: 4px; border-bottom: 2px solid #e0e5ec; }
 div.stTabs [data-baseweb="tab"] {
-    padding: 8px 20px;
-    border-radius: 6px 6px 0 0;
-    font-weight: 600;
-    color: #808495 !important;
-    background: transparent !important;
+    padding: 8px 20px; border-radius: 6px 6px 0 0;
+    font-weight: 600; color: #808495 !important; background: transparent !important;
 }
 div.stTabs [aria-selected="true"] {
-    color: #0070FF !important;
-    border-bottom: 3px solid #0070FF !important;
+    color: #0070FF !important; border-bottom: 3px solid #0070FF !important;
     background: transparent !important;
 }
-/* Override any built-in red/pink highlight Streamlit adds */
-div.stTabs [data-baseweb="tab-highlight"] {
-    background-color: #0070FF !important;
-}
-div.stTabs [data-baseweb="tab-border"] {
-    background-color: #e0e5ec !important;
-}
+div.stTabs [data-baseweb="tab-highlight"] { background-color: #0070FF !important; }
 
-/* ── Sidebar ── */
-section[data-testid="stSidebar"] {
-    background: #f8f9fb !important;
-    border-right: 1px solid #e0e5ec;
-}
+/* ═══ Sidebar ═══ */
+section[data-testid="stSidebar"] { background: #f8f9fb !important; border-right: 1px solid #e0e5ec; }
 section[data-testid="stSidebar"] h1,
 section[data-testid="stSidebar"] h2,
-section[data-testid="stSidebar"] h3 {
-    color: #1a1a2e !important;
-}
+section[data-testid="stSidebar"] h3 { color: #1a1a2e !important; }
 section[data-testid="stSidebar"] .stMarkdown p,
-section[data-testid="stSidebar"] label {
-    color: #3a3a4a !important;
-}
+section[data-testid="stSidebar"] label { color: #3a3a4a !important; }
 
-/* ── Selectbox / dropdown — blue border ── */
+/* ═══ Selectbox — blue border ═══ */
 div[data-baseweb="select"] > div {
-    border-color: #0070FF !important;
-    background: #ffffff !important;
-    color: #1a1a2e !important;
+    border-color: #0070FF !important; background: #ffffff !important; color: #1a1a2e !important;
 }
 
-/* ── Slider — ALL blue: track, active track, thumb ── */
+/* ═══ SLIDER — ALL BLUE (nuclear override) ═══ */
+/* Thumb circle */
 div[data-testid="stSlider"] [role="slider"] {
     background-color: #0070FF !important;
     border-color: #0070FF !important;
 }
+/* Thumb value label — blue text, TRANSPARENT background */
 div[data-testid="stSlider"] [data-testid="stThumbValue"] {
     color: #0070FF !important;
+    background-color: transparent !important;
+    background: transparent !important;
 }
-/* Track (filled portion) */
-div[data-testid="stSlider"] div[role="progressbar"],
-div[data-testid="stSlider"] div[data-baseweb="slider"] div[style*="background"] {
+/* Active (filled) track */
+div[data-testid="stSlider"] div[data-baseweb="slider"] div[role="progressbar"] {
+    background-color: #0070FF !important;
+}
+/* Target inner track fill via nested divs */
+div[data-testid="stSlider"] div[data-baseweb="slider"] > div > div > div:first-child {
+    background-color: #0070FF !important;
+}
+div[data-testid="stSlider"] div[data-baseweb="slider"] > div > div > div:nth-child(2) {
+    background-color: #0070FF !important;
+}
+/* Blanket override: any element with inline red-ish bg inside the slider */
+div[data-testid="stSlider"] div[style*="background-color: rgb(255"],
+div[data-testid="stSlider"] div[style*="background-color: rgb(246"],
+div[data-testid="stSlider"] div[style*="background-color: rgb(240"],
+div[data-testid="stSlider"] div[style*="background-color: rgb(255, 75"],
+div[data-testid="stSlider"] div[style*="background-color: rgb(255,75"],
+div[data-testid="stSlider"] div[style*="background: rgb(255"] {
+    background-color: #0070FF !important;
+    background: #0070FF !important;
+}
+/* Streamlit primary-color track override */
+div[data-testid="stSlider"] div[data-baseweb="slider"] div[aria-hidden="true"] div {
     background-color: #0070FF !important;
 }
 
-/* ── Radio buttons ── */
-div.stRadio label {
-    color: #1a1a2e !important;
+/* ═══ Radio buttons ═══ */
+div.stRadio label { color: #1a1a2e !important; }
+
+/* ═══ Table (st.table) — white bg, black text ═══ */
+div[data-testid="stTable"] table {
+    background: #FFFFFF !important; color: #1a1a2e !important;
+    border-collapse: collapse; width: 100%;
+}
+div[data-testid="stTable"] th {
+    background: #f0f2f6 !important; color: #1a1a2e !important;
+    font-weight: 700 !important; padding: 10px 14px !important;
+    border-bottom: 2px solid #d0d5dd !important; text-align: left !important;
+    font-size: 0.85rem;
+}
+div[data-testid="stTable"] td {
+    background: #FFFFFF !important; color: #1a1a2e !important;
+    padding: 9px 14px !important; border-bottom: 1px solid #e8eaed !important;
+    font-size: 0.88rem;
+}
+div[data-testid="stTable"] tr:hover td { background: #f8f9fb !important; }
+
+/* Dataframe fallback */
+div[data-testid="stDataFrame"], div[data-testid="stDataFrame"] * {
+    background: #FFFFFF !important; color: #1a1a2e !important;
 }
 
-/* ── Dataframe / table — white bg, black text ── */
-div[data-testid="stDataFrame"] {
-    border: 1px solid #e0e5ec;
-    border-radius: 8px;
-    overflow: hidden;
-}
-div[data-testid="stDataFrame"] * {
-    color: #1a1a2e !important;
-}
-div[data-testid="stDataFrame"] table {
-    background: #FFFFFF !important;
-}
-div[data-testid="stDataFrame"] th {
-    background: #f0f2f6 !important;
-    color: #1a1a2e !important;
-    font-weight: 700 !important;
-}
-div[data-testid="stDataFrame"] td {
-    background: #FFFFFF !important;
-    color: #1a1a2e !important;
-}
-/* Glide (the dataframe renderer Streamlit uses) */
-div[data-testid="stDataFrame"] .glideDataEditor,
-div[data-testid="stDataFrame"] canvas + div {
-    background: #FFFFFF !important;
-}
-
-/* ── Dividers ── */
 hr { border-color: #e0e5ec !important; }
 
-/* ── Disclaimer box ── */
 .disclaimer-box {
-    background: #FFF8E1;
-    border-left: 4px solid #FFB300;
-    padding: 14px 18px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    color: #5D4037 !important;
-    margin-top: 24px;
-    line-height: 1.55;
+    background: #FFF8E1; border-left: 4px solid #FFB300;
+    padding: 14px 18px; border-radius: 6px; font-size: 0.85rem;
+    color: #5D4037 !important; margin-top: 24px; line-height: 1.55;
 }
 
-/* ── Stats card ── */
 .stats-card {
-    background: #f8f9fb;
-    border: 1px solid #e0e5ec;
-    border-radius: 10px;
-    padding: 18px 20px;
-    margin-bottom: 12px;
+    background: #f8f9fb; border: 1px solid #e0e5ec;
+    border-radius: 10px; padding: 18px 20px; margin-bottom: 12px;
 }
 .stats-card h4 {
-    color: #0070FF !important;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 10px;
-    border-bottom: 2px solid #D6EAFF;
-    padding-bottom: 6px;
+    color: #0070FF !important; font-size: 0.9rem; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 10px;
+    border-bottom: 2px solid #D6EAFF; padding-bottom: 6px;
 }
-.stats-card p {
-    margin: 4px 0;
-    font-size: 0.88rem;
-    color: #1a1a2e !important;
-}
+.stats-card p { margin: 4px 0; font-size: 0.88rem; color: #1a1a2e !important; }
 .stats-card .label { color: #606475 !important; font-weight: 400; }
 .stats-card .value {
-    font-weight: 700;
-    color: #1a1a2e !important;
+    font-weight: 700; color: #1a1a2e !important;
     font-family: 'SF Mono', 'Fira Code', monospace;
 }
 </style>
+
+<script>
+// Force slider track to blue — overrides Streamlit's inline primaryColor
+(function() {
+    function fixSliders() {
+        document.querySelectorAll('[data-testid="stSlider"] div[role="progressbar"]').forEach(el => {
+            el.style.setProperty('background-color', '#0070FF', 'important');
+        });
+        // Also catch the inner track div that Streamlit colours with primaryColor
+        document.querySelectorAll('[data-testid="stSlider"] [data-baseweb="slider"] div').forEach(el => {
+            const bg = el.style.backgroundColor;
+            if (bg && (bg.includes('255') || bg.includes('ff4') || bg.includes('rgb(255'))) {
+                el.style.setProperty('background-color', '#0070FF', 'important');
+            }
+        });
+        // Thumb value background transparent
+        document.querySelectorAll('[data-testid="stThumbValue"]').forEach(el => {
+            el.style.setProperty('background-color', 'transparent', 'important');
+            el.style.setProperty('background', 'transparent', 'important');
+        });
+    }
+    // Run immediately + on interval to catch rerenders
+    fixSliders();
+    setInterval(fixSliders, 500);
+})();
+</script>
 """,
     unsafe_allow_html=True,
 )
@@ -260,9 +254,7 @@ def load_data(tickers: list, start: str) -> pd.DataFrame:
             prices = raw["Close"].copy()
         else:
             prices = raw.iloc[
-                :,
-                raw.columns.get_level_values(0)
-                == raw.columns.get_level_values(0)[0],
+                :, raw.columns.get_level_values(0) == raw.columns.get_level_values(0)[0]
             ].copy()
             prices.columns = prices.columns.droplevel(0)
     else:
@@ -282,9 +274,7 @@ def trim_to_span(df: pd.DataFrame, span_key: str) -> pd.DataFrame:
     if span_key == "YTD":
         return df.loc[df.index >= pd.Timestamp(datetime.now().year, 1, 1)]
     n = TIMESPAN_MAP[span_key]
-    if n is None:
-        return df
-    return df.iloc[-min(n, len(df)) :]
+    return df if n is None else df.iloc[-min(n, len(df)):]
 
 
 def log_returns(s: pd.Series) -> pd.Series:
@@ -299,10 +289,10 @@ def safe_last(s: pd.Series, default=np.nan):
 
 
 def compute_metrics(prices: pd.DataFrame, ticker: str) -> dict:
+    """Compute metrics for a single ticker. Prices should already be trimmed."""
     na = {
         "Last Price": "N/A", "Ann. Return": "N/A", "Ann. Volatility": "N/A",
-        "Sharpe Ratio": "N/A", "RSI (14)": "N/A", "5-Day MA": "N/A",
-        "20-Day MA": "N/A",
+        "Sharpe Ratio": "N/A", "RSI (14)": "N/A", "5-Day MA": "N/A", "20-Day MA": "N/A",
     }
     if ticker not in prices.columns:
         return na
@@ -338,64 +328,143 @@ def compute_metrics(prices: pd.DataFrame, ticker: str) -> dict:
 
 
 # ════════════════════════════════════════════════════════════════════════
-# PREDICTION HELPERS
+# RMSFE  (simple train/test split — fast)
 # ════════════════════════════════════════════════════════════════════════
-def random_walk_forecast(lr: pd.Series, last: float, h: int = 60):
+def compute_rmsfe_split(series: pd.Series, forecast_fn, h: int = 60):
+    """Compute RMSFE on the last h observations using a single train/test split.
+    Much faster than walk-forward CV — avoids refitting models multiple times."""
+    if len(series) < h + 100:
+        return np.nan
+    train = series.iloc[:-h]
+    actual = series.iloc[-h:].values
+    try:
+        pred, _ = forecast_fn(train, h)
+        pred = np.array(pred)
+        n = min(len(actual), len(pred))
+        return float(np.sqrt(np.mean((actual[:n] - pred[:n]) ** 2)))
+    except Exception:
+        return np.nan
+
+
+# ════════════════════════════════════════════════════════════════════════
+# PREDICTION HELPERS  (cached for speed)
+# ════════════════════════════════════════════════════════════════════════
+@st.cache_data(show_spinner=False, ttl=3600)
+def _cached_random_walk(values_tuple, last_price, h):
+    """Cache-friendly wrapper: takes tuple of values."""
+    lr = pd.Series(values_tuple)
     if len(lr) < 2:
-        return np.full(h, last), {"Drift (μ daily)": "N/A", "Volatility (σ daily)": "N/A"}
+        return list(np.full(h, last_price)), {
+            "Drift (μ daily)": "N/A", "Volatility (σ daily)": "N/A",
+        }
     mu, sigma = lr.mean(), lr.std()
     np.random.seed(42)
-    path = last * np.exp(np.cumsum(np.random.normal(mu, sigma, h)))
-    return path, {"Drift (μ daily)": f"{mu:.6f}", "Volatility (σ daily)": f"{sigma:.6f}"}
+    path = last_price * np.exp(np.cumsum(np.random.normal(mu, sigma, h)))
+    return list(path), {
+        "Drift (μ daily)": f"{mu:.6f}",
+        "Volatility (σ daily)": f"{sigma:.6f}",
+    }
 
 
-def arima_forecast(series: pd.Series, h: int = 60):
+def random_walk_forecast(series: pd.Series, h: int = 60):
+    lr = log_returns(series)
+    path, stats = _cached_random_walk(tuple(lr.values), float(series.iloc[-1]), h)
+    return np.array(path), stats
+
+
+@st.cache_data(show_spinner=False, ttl=3600)
+def _cached_arima(values_tuple, last_price, h):
+    """ARIMA on log-returns — grid search (p, 0, q) since data is I(1)."""
+    series = pd.Series(values_tuple)
     lr = log_returns(series).dropna()
-    if len(lr) < 30:
-        return np.full(h, series.iloc[-1]), {"Error": "Insufficient data"}
+    if len(lr) < 50:
+        return list(np.full(h, last_price)), {"Error": "Insufficient data"}
+
     best_aic, best_order = np.inf, (1, 0, 1)
+    total = 4 * 4  # p=0..3, q=0..3
+    tested = 0
     for p, q in itertools.product(range(4), range(4)):
+        if p == 0 and q == 0:
+            tested += 1
+            continue
         try:
             res = ARIMA(lr.values, order=(p, 0, q)).fit()
             if res.aic < best_aic:
                 best_aic, best_order = res.aic, (p, 0, q)
         except Exception:
-            continue
+            pass
+        tested += 1
+
     model = ARIMA(lr.values, order=best_order).fit()
     fc = model.forecast(steps=h)
-    return series.iloc[-1] * np.exp(np.cumsum(fc)), {
+    pred = last_price * np.exp(np.cumsum(fc))
+    return list(pred), {
         "Best Order (p,d,q)": str(best_order),
         "AIC": f"{best_aic:.2f}",
+        "BIC": f"{model.bic:.2f}",
         "Log-likelihood": f"{model.llf:.2f}",
     }
 
 
-def garch_forecast(series: pd.Series, h: int = 60):
+def arima_forecast(series: pd.Series, h: int = 60):
+    pred, stats = _cached_arima(tuple(series.values), float(series.iloc[-1]), h)
+    return np.array(pred), stats
+
+
+@st.cache_data(show_spinner=False, ttl=3600)
+def _cached_garch(values_tuple, last_price, h):
+    """GARCH on log-returns — grid search (p, q)."""
+    series = pd.Series(values_tuple)
     lr = log_returns(series).dropna() * 100
-    if len(lr) < 30:
-        return np.full(h, series.iloc[-1]), {"Error": "Insufficient data"}
-    am = arch_model(lr, vol="Garch", p=1, q=1, mean="AR", lags=1, rescale=False)
+    if len(lr) < 50:
+        return list(np.full(h, last_price)), {"Error": "Insufficient data"}
+
+    best_bic, best_pq = np.inf, (1, 1)
+    for gp, gq in itertools.product(range(1, 4), range(1, 4)):
+        try:
+            am = arch_model(lr, vol="Garch", p=gp, q=gq, mean="AR", lags=1, rescale=False)
+            res = am.fit(disp="off")
+            if res.bic < best_bic:
+                best_bic, best_pq = res.bic, (gp, gq)
+        except Exception:
+            continue
+
+    am = arch_model(lr, vol="Garch", p=best_pq[0], q=best_pq[1], mean="AR", lags=1, rescale=False)
     res = am.fit(disp="off")
     fc = res.forecast(horizon=h)
     mean_fc = fc.mean.iloc[-1].values / 100
     var_fc = fc.variance.iloc[-1].values / 10000
     np.random.seed(42)
     shocks = np.random.normal(mean_fc, np.sqrt(var_fc))
-    return series.iloc[-1] * np.exp(np.cumsum(shocks)), {
+    pred = last_price * np.exp(np.cumsum(shocks))
+
+    return list(pred), {
+        "Best Order (p,q)": str(best_pq),
+        "BIC": f"{best_bic:.2f}",
         "ω": f"{res.params.get('omega', 0):.6f}",
-        "α₁": f"{res.params.get('alpha[1]', 0):.6f}",
-        "β₁": f"{res.params.get('beta[1]', 0):.6f}",
+        f"α (1‥{best_pq[0]})": ", ".join(
+            f"{res.params.get(f'alpha[{i}]', 0):.5f}" for i in range(1, best_pq[0] + 1)
+        ),
+        f"β (1‥{best_pq[1]})": ", ".join(
+            f"{res.params.get(f'beta[{i}]', 0):.5f}" for i in range(1, best_pq[1] + 1)
+        ),
         "Log-likelihood": f"{res.loglikelihood:.2f}",
     }
 
 
-def xgboost_forecast(series: pd.Series, h: int = 60, n_lags: int = 20):
-    """XGBoost regression on lagged log-return features."""
+def garch_forecast(series: pd.Series, h: int = 60):
+    pred, stats = _cached_garch(tuple(series.values), float(series.iloc[-1]), h)
+    return np.array(pred), stats
+
+
+@st.cache_data(show_spinner=False, ttl=3600)
+def _cached_xgboost(values_tuple, last_price, h, n_lags):
+    """XGBoost on lagged log-return features."""
+    series = pd.Series(values_tuple)
     lr = log_returns(series).dropna()
     if len(lr) < n_lags + 50:
-        return np.full(h, series.iloc[-1]), {"Error": "Insufficient data"}
+        return list(np.full(h, last_price)), {"Error": "Insufficient data"}
 
-    # Build feature matrix: each row = [ret_{t-1}, ret_{t-2}, …, ret_{t-n_lags}]
     data = pd.DataFrame({"ret": lr.values})
     for lag in range(1, n_lags + 1):
         data[f"lag_{lag}"] = data["ret"].shift(lag)
@@ -403,41 +472,44 @@ def xgboost_forecast(series: pd.Series, h: int = 60, n_lags: int = 20):
 
     X = data.drop(columns=["ret"]).values
     y = data["ret"].values
-
-    # Train/test split (last 20% for validation stats)
     split = int(len(X) * 0.8)
     X_train, X_test = X[:split], X[split:]
     y_train, y_test = y[:split], y[split:]
 
     model = XGBRegressor(
-        n_estimators=300, max_depth=4, learning_rate=0.05,
+        n_estimators=500, max_depth=5, learning_rate=0.03,
         subsample=0.8, colsample_bytree=0.8, random_state=42,
-        verbosity=0,
+        verbosity=0, early_stopping_rounds=30,
     )
     model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=False)
 
     y_pred_test = model.predict(X_test)
-    rmse = float(np.sqrt(mean_squared_error(y_test, y_pred_test)))
-    mae = float(mean_absolute_error(y_test, y_pred_test))
+    rmse_val = float(np.sqrt(mean_squared_error(y_test, y_pred_test)))
+    mae_val = float(mean_absolute_error(y_test, y_pred_test))
 
-    # Recursive multi-step forecast
     recent = list(lr.values[-n_lags:])
     preds = []
     for _ in range(h):
-        feat = np.array(recent[-n_lags:][::-1]).reshape(1, -1)  # most recent first
+        feat = np.array(recent[-n_lags:][::-1]).reshape(1, -1)
         pred_ret = float(model.predict(feat)[0])
         preds.append(pred_ret)
         recent.append(pred_ret)
 
-    pred_prices = series.iloc[-1] * np.exp(np.cumsum(preds))
-    stats = {
+    pred_prices = last_price * np.exp(np.cumsum(preds))
+    best_iter = model.best_iteration + 1 if hasattr(model, "best_iteration") and model.best_iteration else 500
+    return list(pred_prices), {
         "Lags": str(n_lags),
-        "n_estimators": "300",
-        "max_depth": "4",
-        "Val RMSE": f"{rmse:.6f}",
-        "Val MAE": f"{mae:.6f}",
+        "n_estimators (best)": str(best_iter),
+        "max_depth": "5",
+        "learning_rate": "0.03",
+        "Val RMSE (returns)": f"{rmse_val:.6f}",
+        "Val MAE (returns)": f"{mae_val:.6f}",
     }
-    return pred_prices, stats
+
+
+def xgboost_forecast(series: pd.Series, h: int = 60, n_lags: int = 20):
+    pred, stats = _cached_xgboost(tuple(series.values), float(series.iloc[-1]), h, n_lags)
+    return np.array(pred), stats
 
 
 def correlation_stats(prices: pd.DataFrame, ticker: str) -> dict:
@@ -451,7 +523,7 @@ def correlation_stats(prices: pd.DataFrame, ticker: str) -> dict:
         return {"Correlation": "N/A", "Beta": "N/A", "R²": "N/A"}
     corr = lr[ticker].corr(lr[BENCHMARK])
     beta = lr[ticker].cov(lr[BENCHMARK]) / lr[BENCHMARK].var()
-    r2 = corr**2 if not pd.isna(corr) else np.nan
+    r2 = corr ** 2 if not pd.isna(corr) else np.nan
     return {
         "Correlation": f"{corr:.4f}" if not pd.isna(corr) else "N/A",
         "Beta": f"{beta:.4f}" if not pd.isna(beta) else "N/A",
@@ -460,27 +532,20 @@ def correlation_stats(prices: pd.DataFrame, ticker: str) -> dict:
 
 
 # ════════════════════════════════════════════════════════════════════════
-# CHART HELPERS  (all axis / title labels → black)
+# CHART HELPERS
 # ════════════════════════════════════════════════════════════════════════
 CHART_LAYOUT = dict(
     template="plotly_white",
     font=dict(family="Source Sans Pro, sans-serif", size=13, color="#1a1a2e"),
     margin=dict(l=50, r=30, t=50, b=40),
     hovermode="x unified",
-    legend=dict(
-        orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
-        font=dict(color="#1a1a2e"),
-    ),
-    plot_bgcolor="#FFFFFF",
-    paper_bgcolor="#FFFFFF",
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
+                font=dict(color="#1a1a2e")),
+    plot_bgcolor="#FFFFFF", paper_bgcolor="#FFFFFF",
     title_font=dict(color="#1a1a2e"),
 )
-
-AXIS_STYLE = dict(
-    gridcolor="#f0f0f0", zeroline=False,
-    title_font=dict(color="#1a1a2e"),
-    tickfont=dict(color="#1a1a2e"),
-)
+AX = dict(gridcolor="#f0f0f0", zeroline=False,
+          title_font=dict(color="#1a1a2e"), tickfont=dict(color="#1a1a2e"))
 
 
 def price_chart(df: pd.Series, title: str) -> go.Figure:
@@ -492,8 +557,8 @@ def price_chart(df: pd.Series, title: str) -> go.Figure:
         hovertemplate="%{x|%d %b %Y}<br>Price: %{y:,.2f}<extra></extra>",
     ))
     fig.update_layout(title=title, yaxis_title="Price (THB)", **CHART_LAYOUT)
-    fig.update_xaxes(**AXIS_STYLE)
-    fig.update_yaxes(**AXIS_STYLE)
+    fig.update_xaxes(**AX)
+    fig.update_yaxes(**AX)
     return fig
 
 
@@ -513,12 +578,10 @@ def prediction_chart(hist_bench, hist_stock, pred_prices, future_dates,
         line=dict(color=line_color, width=2.5, dash="dot"),
         name=f"Forecast ({model_label})",
     ), secondary_y=True)
-    fig.update_layout(
-        title=f"{model_label} — {stock_name} vs {bench_name}", **CHART_LAYOUT
-    )
-    fig.update_yaxes(title_text=bench_name, secondary_y=False, **AXIS_STYLE)
-    fig.update_yaxes(title_text=stock_name, secondary_y=True, **AXIS_STYLE)
-    fig.update_xaxes(**AXIS_STYLE)
+    fig.update_layout(title=f"{model_label} — {stock_name} vs {bench_name}", **CHART_LAYOUT)
+    fig.update_yaxes(title_text=bench_name, secondary_y=False, **AX)
+    fig.update_yaxes(title_text=stock_name, secondary_y=True, **AX)
+    fig.update_xaxes(**AX)
     return fig
 
 
@@ -527,10 +590,7 @@ def render_stats_card(title: str, stats: dict):
         f'<p><span class="label">{k}:</span> <span class="value">{v}</span></p>'
         for k, v in stats.items()
     )
-    st.markdown(
-        f'<div class="stats-card"><h4>{title}</h4>{rows}</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown(f'<div class="stats-card"><h4>{title}</h4>{rows}</div>', unsafe_allow_html=True)
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -580,164 +640,196 @@ st.markdown("---")
 # SECTION 1 — SET INDEX OVERVIEW
 # ════════════════════════════════════════════════════════════════════════
 st.markdown("## 1 · SET Index Overview")
-
 set_series = (
     prices[BENCHMARK].dropna() if BENCHMARK in prices.columns
     else pd.Series(dtype=float)
 )
-
 if len(set_series) < 2:
     st.warning("⚠️ SET Index data unavailable.")
 else:
-    set_lr = log_returns(set_series)
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Last Close", f"{set_series.iloc[-1]:,.2f}")
-    c2.metric("Ann. Return", f"{set_lr.mean() * TRADING_DAYS:.2%}")
-    c3.metric("Ann. Volatility", f"{set_lr.std() * np.sqrt(TRADING_DAYS):.2%}")
-    c4.metric("Data Points", f"{len(set_series):,}")
+    set_span = st.radio(
+        "Timespan", list(TIMESPAN_MAP), horizontal=True, index=3,
+        key="set_span",
+    )
+    set_trimmed = trim_to_span(set_series.to_frame(), set_span)[BENCHMARK].dropna()
 
-    for tab, sk in zip(st.tabs(list(TIMESPAN_MAP)), TIMESPAN_MAP):
-        with tab:
-            trimmed = trim_to_span(set_series.to_frame(), sk)[BENCHMARK].dropna()
-            if len(trimmed) > 0:
-                st.plotly_chart(price_chart(trimmed, f"SET Index ({sk})"), use_container_width=True)
-            else:
-                st.info(f"Not enough data for {sk} window.")
+    if len(set_trimmed) >= 2:
+        set_lr_t = log_returns(set_trimmed)
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Last Close", f"{set_trimmed.iloc[-1]:,.2f}")
+        c2.metric("Ann. Return", f"{set_lr_t.mean() * TRADING_DAYS:.2%}")
+        c3.metric("Ann. Volatility", f"{set_lr_t.std() * np.sqrt(TRADING_DAYS):.2%}")
+        c4.metric("Data Points", f"{len(set_trimmed):,}")
+        st.plotly_chart(price_chart(set_trimmed, f"SET Index ({set_span})"), use_container_width=True)
+    else:
+        st.info(f"Not enough data for {set_span} window.")
 
 st.markdown("---")
 
 # ════════════════════════════════════════════════════════════════════════
-# SECTION 2 — ASSET METRICS
+# SECTION 3 — PREDICTIONS  (placed BEFORE section 2 in code so we get
+#   the timespan selection first, then section 2 uses it)
 # ════════════════════════════════════════════════════════════════════════
-st.markdown(f"## 2 · Asset Overview — {selected_label}")
+# We need the timespan choice early so Section 2 can use it.
+# We'll render Section 2 first visually via st.container ordering.
 
-stock_series = (
+stock_series_full = (
     prices[selected_ticker].dropna() if selected_ticker in prices.columns
     else pd.Series(dtype=float)
 )
 
-if len(stock_series) >= 25:
-    s_lr = log_returns(stock_series)
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Last Close", f"{stock_series.iloc[-1]:,.2f}")
-    ar = s_lr.mean() * TRADING_DAYS
-    m2.metric("Ann. Return", f"{ar:.2%}")
-    av = s_lr.std() * np.sqrt(TRADING_DAYS)
-    m3.metric("Ann. Volatility", f"{av:.2%}")
-    m4.metric("Sharpe Ratio", f"{(ar - RF_RATE) / av if av else 0:.3f}")
-else:
-    st.warning(f"⚠️ Insufficient price data for **{selected_label}**.")
-
-rows = {lbl: compute_metrics(prices, t) for lbl, t in TICKERS.items()}
-mdf = pd.DataFrame(rows).T
-mdf.index.name = "Asset"
-st.dataframe(mdf, use_container_width=True)
-
+# Create containers so Section 2 appears above Section 3 visually
+section2_container = st.container()
 st.markdown("---")
+section3_container = st.container()
 
-# ════════════════════════════════════════════════════════════════════════
-# SECTION 3 — PREDICTIONS
-# ════════════════════════════════════════════════════════════════════════
-st.markdown(f"## 3 · Price Predictions — {selected_label} vs SET Index")
+# ── Section 3: get timespan choice ─────────────────────────────────────
+with section3_container:
+    st.markdown(f"## 3 · Price Predictions — {selected_label} vs SET Index")
 
-if len(stock_series) < 30 or len(set_series) < 30:
-    st.error("⚠️ Not enough data for prediction models.")
-else:
-    pred_span = st.radio(
-        "Historical window for prediction charts",
-        list(TIMESPAN_MAP), horizontal=True, index=3,
-    )
-    hist_bench = trim_to_span(set_series.to_frame(), pred_span)[BENCHMARK].dropna()
-    hist_stock = trim_to_span(stock_series.to_frame(), pred_span)[selected_ticker].dropna()
-
-    if len(hist_stock) < 2 or len(hist_bench) < 2:
-        st.warning("Not enough data in the selected window.")
+    if len(stock_series_full) < 50 or len(set_series) < 50:
+        st.error("⚠️ Not enough data for prediction models.")
+        pred_span = "1Y"  # default fallback
     else:
-        last_date = hist_stock.index[-1]
-        future_dates = pd.bdate_range(start=last_date + timedelta(days=1), periods=forecast_horizon)
-        corr_info = correlation_stats(prices, selected_ticker)
-
-        if not HAS_TIMESERIES:
-            st.error("⚠️ `statsmodels` / `arch` not installed for ARIMA & GARCH.")
-
-        # ── 3.1  Random Walk ───────────────────────────────────────
-        st.markdown("### 3.1 · Random Walk (Geometric Brownian Motion)")
-        rw_pred, rw_stats = random_walk_forecast(
-            log_returns(stock_series), stock_series.iloc[-1], forecast_horizon
+        pred_span = st.radio(
+            "Historical window for prediction charts",
+            list(TIMESPAN_MAP), horizontal=True, index=3,
         )
-        cc, cs = st.columns([3, 1])
-        with cc:
-            st.plotly_chart(prediction_chart(
-                hist_bench, hist_stock, rw_pred, future_dates,
-                "SET Index", selected_ticker, "Random Walk",
-            ), use_container_width=True)
-        with cs:
-            render_stats_card("Model Parameters", rw_stats)
-            render_stats_card("Correlation with SET", corr_info)
 
-        # ── 3.2  ARIMA ─────────────────────────────────────────────
-        st.markdown("### 3.2 · ARIMA (Best AIC Order)")
-        if HAS_TIMESERIES:
-            with st.spinner("Fitting ARIMA — grid search …"):
-                try:
-                    arima_pred, arima_stats = arima_forecast(stock_series, forecast_horizon)
-                except Exception as e:
-                    arima_pred = np.full(forecast_horizon, stock_series.iloc[-1])
-                    arima_stats = {"Error": str(e)[:80]}
-            cc2, cs2 = st.columns([3, 1])
-            with cc2:
-                st.plotly_chart(prediction_chart(
-                    hist_bench, hist_stock, arima_pred, future_dates,
-                    "SET Index", selected_ticker, "ARIMA",
-                ), use_container_width=True)
-            with cs2:
-                render_stats_card("Model Parameters", arima_stats)
-                render_stats_card("Correlation with SET", corr_info)
-        else:
-            st.info("ARIMA unavailable — install `statsmodels`.")
+# ── Section 2: uses the timespan from Section 3 ───────────────────────
+with section2_container:
+    st.markdown(f"## 2 · Asset Overview — {selected_label}")
+    st.caption(f"📅 Metrics computed over **{pred_span}** window (synced with Section 3)")
 
-        # ── 3.3  GARCH ─────────────────────────────────────────────
-        st.markdown("### 3.3 · GARCH(1,1) — Volatility Clustering")
-        if HAS_TIMESERIES:
-            with st.spinner("Fitting GARCH(1,1) …"):
-                try:
-                    garch_pred, garch_stats = garch_forecast(stock_series, forecast_horizon)
-                except Exception as e:
-                    garch_pred = np.full(forecast_horizon, stock_series.iloc[-1])
-                    garch_stats = {"Error": str(e)[:80]}
-            cc3, cs3 = st.columns([3, 1])
-            with cc3:
-                st.plotly_chart(prediction_chart(
-                    hist_bench, hist_stock, garch_pred, future_dates,
-                    "SET Index", selected_ticker, "GARCH(1,1)",
-                ), use_container_width=True)
-            with cs3:
-                render_stats_card("Model Parameters", garch_stats)
-                render_stats_card("Correlation with SET", corr_info)
-        else:
-            st.info("GARCH unavailable — install `arch`.")
+    # Trim ALL prices to the chosen timespan
+    prices_trimmed = trim_to_span(prices, pred_span)
+    stock_series_trimmed = (
+        prices_trimmed[selected_ticker].dropna()
+        if selected_ticker in prices_trimmed.columns
+        else pd.Series(dtype=float)
+    )
 
-        # ── 3.4  XGBoost ───────────────────────────────────────────
-        st.markdown("### 3.4 · XGBoost (Gradient-Boosted Trees)")
-        if HAS_XGBOOST:
-            with st.spinner("Training XGBoost on lagged returns …"):
-                try:
-                    xgb_pred, xgb_stats = xgboost_forecast(stock_series, forecast_horizon)
-                except Exception as e:
-                    xgb_pred = np.full(forecast_horizon, stock_series.iloc[-1])
-                    xgb_stats = {"Error": str(e)[:80]}
-            cc4, cs4 = st.columns([3, 1])
-            with cc4:
-                st.plotly_chart(prediction_chart(
-                    hist_bench, hist_stock, xgb_pred, future_dates,
-                    "SET Index", selected_ticker, "XGBoost",
-                    line_color=ACCENT_ORANGE,
-                ), use_container_width=True)
-            with cs4:
-                render_stats_card("Model Parameters", xgb_stats)
-                render_stats_card("Correlation with SET", corr_info)
+    if len(stock_series_trimmed) >= 25:
+        s_lr = log_returns(stock_series_trimmed)
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Last Close", f"{stock_series_trimmed.iloc[-1]:,.2f}")
+        ar = s_lr.mean() * TRADING_DAYS
+        m2.metric("Ann. Return", f"{ar:.2%}")
+        av = s_lr.std() * np.sqrt(TRADING_DAYS)
+        m3.metric("Ann. Volatility", f"{av:.2%}")
+        m4.metric("Sharpe Ratio", f"{(ar - RF_RATE) / av if av else 0:.3f}")
+    else:
+        st.warning(f"⚠️ Insufficient price data for **{selected_label}** in {pred_span} window.")
+
+    rows = {lbl: compute_metrics(prices_trimmed, t) for lbl, t in TICKERS.items()}
+    mdf = pd.DataFrame(rows).T
+    mdf.index.name = "Asset"
+    st.table(mdf)
+
+# ── Section 3: prediction models ──────────────────────────────────────
+with section3_container:
+    if len(stock_series_full) >= 50 and len(set_series) >= 50:
+        hist_bench = trim_to_span(set_series.to_frame(), pred_span)[BENCHMARK].dropna()
+        hist_stock = trim_to_span(stock_series_full.to_frame(), pred_span)[selected_ticker].dropna()
+
+        if len(hist_stock) < 2 or len(hist_bench) < 2:
+            st.warning("Not enough data in the selected window.")
         else:
-            st.info("XGBoost unavailable — install `xgboost` and `scikit-learn`.")
+            last_date = hist_stock.index[-1]
+            future_dates = pd.bdate_range(
+                start=last_date + timedelta(days=1), periods=forecast_horizon
+            )
+            corr_info = correlation_stats(prices, selected_ticker)
+
+            if not HAS_TIMESERIES:
+                st.error("⚠️ `statsmodels` / `arch` not installed.")
+
+            # ── 3.1  Random Walk ───────────────────────────────────
+            st.markdown("### 3.1 · Random Walk (Geometric Brownian Motion)")
+            with st.spinner("🎲 Simulating random walk paths …"):
+                rw_pred, rw_stats = random_walk_forecast(stock_series_full, forecast_horizon)
+                rmsfe_rw = compute_rmsfe_split(stock_series_full, random_walk_forecast, forecast_horizon)
+                rw_stats["RMSFE"] = f"{rmsfe_rw:.2f}" if not np.isnan(rmsfe_rw) else "N/A"
+
+            cc, cs = st.columns([3, 1])
+            with cc:
+                st.plotly_chart(prediction_chart(
+                    hist_bench, hist_stock, rw_pred, future_dates,
+                    "SET Index", selected_ticker, "Random Walk",
+                ), use_container_width=True)
+            with cs:
+                render_stats_card("Model Parameters", rw_stats)
+                render_stats_card("Correlation with SET", corr_info)
+
+            # ── 3.2  ARIMA (p, 0, q) ──────────────────────────────
+            st.markdown("### 3.2 · ARIMA (Grid Search p, 0, q)")
+            if HAS_TIMESERIES:
+                with st.spinner("🔍 Rolling through ARIMA(p, 0, q) grid — testing 15 combinations …"):
+                    try:
+                        arima_pred, arima_stats = arima_forecast(stock_series_full, forecast_horizon)
+                        rmsfe_a = compute_rmsfe_split(stock_series_full, arima_forecast, forecast_horizon)
+                        arima_stats["RMSFE"] = f"{rmsfe_a:.2f}" if not np.isnan(rmsfe_a) else "N/A"
+                    except Exception as e:
+                        arima_pred = np.full(forecast_horizon, stock_series_full.iloc[-1])
+                        arima_stats = {"Error": str(e)[:80]}
+                cc2, cs2 = st.columns([3, 1])
+                with cc2:
+                    st.plotly_chart(prediction_chart(
+                        hist_bench, hist_stock, arima_pred, future_dates,
+                        "SET Index", selected_ticker, "ARIMA",
+                    ), use_container_width=True)
+                with cs2:
+                    render_stats_card("Model Parameters", arima_stats)
+                    render_stats_card("Correlation with SET", corr_info)
+            else:
+                st.info("ARIMA unavailable — install `statsmodels`.")
+
+            # ── 3.3  GARCH (p, q) ─────────────────────────────────
+            st.markdown("### 3.3 · GARCH (Grid Search p, q)")
+            if HAS_TIMESERIES:
+                with st.spinner("📈 Fitting GARCH(p, q) — estimating volatility clusters across 9 combinations …"):
+                    try:
+                        garch_pred, garch_stats = garch_forecast(stock_series_full, forecast_horizon)
+                        rmsfe_g = compute_rmsfe_split(stock_series_full, garch_forecast, forecast_horizon)
+                        garch_stats["RMSFE"] = f"{rmsfe_g:.2f}" if not np.isnan(rmsfe_g) else "N/A"
+                    except Exception as e:
+                        garch_pred = np.full(forecast_horizon, stock_series_full.iloc[-1])
+                        garch_stats = {"Error": str(e)[:80]}
+                cc3, cs3 = st.columns([3, 1])
+                with cc3:
+                    st.plotly_chart(prediction_chart(
+                        hist_bench, hist_stock, garch_pred, future_dates,
+                        "SET Index", selected_ticker, "GARCH",
+                    ), use_container_width=True)
+                with cs3:
+                    render_stats_card("Model Parameters", garch_stats)
+                    render_stats_card("Correlation with SET", corr_info)
+            else:
+                st.info("GARCH unavailable — install `arch`.")
+
+            # ── 3.4  XGBoost ──────────────────────────────────────
+            st.markdown("### 3.4 · XGBoost (Gradient-Boosted Trees)")
+            if HAS_XGBOOST:
+                with st.spinner("🌲 Training XGBoost — building 500 trees on lagged return features …"):
+                    try:
+                        xgb_pred, xgb_stats = xgboost_forecast(stock_series_full, forecast_horizon)
+                        rmsfe_x = compute_rmsfe_split(stock_series_full, xgboost_forecast, forecast_horizon)
+                        xgb_stats["RMSFE"] = f"{rmsfe_x:.2f}" if not np.isnan(rmsfe_x) else "N/A"
+                    except Exception as e:
+                        xgb_pred = np.full(forecast_horizon, stock_series_full.iloc[-1])
+                        xgb_stats = {"Error": str(e)[:80]}
+                cc4, cs4 = st.columns([3, 1])
+                with cc4:
+                    st.plotly_chart(prediction_chart(
+                        hist_bench, hist_stock, xgb_pred, future_dates,
+                        "SET Index", selected_ticker, "XGBoost",
+                        line_color=ACCENT_ORANGE,
+                    ), use_container_width=True)
+                with cs4:
+                    render_stats_card("Model Parameters", xgb_stats)
+                    render_stats_card("Correlation with SET", corr_info)
+            else:
+                st.info("XGBoost unavailable — install `xgboost` and `scikit-learn`.")
 
 # ════════════════════════════════════════════════════════════════════════
 # FOOTER
