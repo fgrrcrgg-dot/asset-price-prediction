@@ -37,13 +37,14 @@ your-repo/
 
 ### Section 1 — SET Index Overview
 
-Displays the SET Index (^SET.BK) with a selectable timespan (1M, 6M, YTD, 1Y, 2Y, 5Y, 10Y, 20Y). The four metric cards — Last Close, Annualised Return, Annualised Volatility, and Data Points — all recompute dynamically based on the chosen window.
+Displays the SET Index (^SET.BK) with a selectable timespan (1M, 6M, YTD, 1Y, 2Y, 5Y, 10Y, 20Y). The five metric cards — Last Close, CAGR, Annualised Return, Annualised Volatility, and Data Points — all recompute dynamically based on the chosen window.
 
 ### Section 2 — Asset Overview
 
 A comprehensive metrics table covering all five listed equities. Includes:
 
 - **Last Price**
+- **CAGR** — Compound Annual Growth Rate: `(P_end / P_start)^(1/years) − 1`
 - **Annualised Return** (logarithmic)
 - **Annualised Volatility** (standard deviation)
 - **Sharpe Ratio** (risk-free rate = 2%)
@@ -87,6 +88,7 @@ Benchmark: **SET Index** (`^SET.BK`)
 - **Source**: Yahoo Finance via `yfinance` (adjusted close prices)
 - **Period**: January 1, 2000 — present
 - **Returns**: Logarithmic returns: `r_t = ln(P_t / P_{t-1})`
+- **CAGR**: Compound Annual Growth Rate: `(P_end / P_start)^(1/years) − 1`, where years is the duration of the selected timespan. Provides the discrete annualised growth rate, complementing the continuously compounded annualised log-return.
 - **Risk-free rate**: 2% annualised (proxy)
 - **Trading days**: 252 per year
 
