@@ -172,7 +172,7 @@ div[data-baseweb="calendar"] button[disabled] {
 .stats-card .value{font-weight:700;color:#1a1a2e!important;font-family:'SF Mono','Fira Code',monospace}
 </style>
 <script>
-(function(){function f(){document.querySelectorAll('[data-testid="stSlider"] div[role="progressbar"]').forEach(e=>{e.style.setProperty('background-color','#0070FF','important')});document.querySelectorAll('[data-testid="stSlider"] [data-baseweb="slider"] div').forEach(e=>{const b=e.style.backgroundColor;if(b&&b.includes('255'))e.style.setProperty('background-color','#0070FF','important')});document.querySelectorAll('[data-testid="stThumbValue"]').forEach(e=>{e.style.setProperty('background','transparent','important')});document.querySelectorAll('[data-baseweb="calendar"] *, [data-baseweb="datepicker"] *, [data-baseweb="popover"] [data-baseweb="calendar"], [data-baseweb="popover"] [data-baseweb="calendar"] *').forEach(e=>{const cs=getComputedStyle(e);const bg=cs.backgroundColor;if(bg&&(bg.includes('30,')||bg.includes('31,')||bg.includes('33,')||bg.includes('0, 0, 0')||bg.includes('14,')||bg.includes('17,')||bg.includes('22,')||bg.includes('26,')||bg.includes('39,')||bg.includes('43,')||bg.includes('48,')||bg.includes('50,')||bg.includes('55,')||bg.includes('rgb(0')||bg==='rgb(0, 0, 0)')){e.style.setProperty('background-color','#FFFFFF','important');e.style.setProperty('background','#FFFFFF','important')}});document.querySelectorAll('[data-baseweb="calendar"] button:not([aria-selected="true"])').forEach(e=>{e.style.setProperty('background','#FFFFFF','important');e.style.setProperty('color','#1a1a2e','important')});document.querySelectorAll('[data-baseweb="calendar"] button[aria-selected="true"]').forEach(e=>{e.style.setProperty('background','#0070FF','important');e.style.setProperty('color','#FFFFFF','important')})}f();setInterval(f,300)})();
+(function(){function f(){document.querySelectorAll('[data-testid="stSlider"] div[role="progressbar"]').forEach(e=>{e.style.setProperty('background-color','#0070FF','important')});document.querySelectorAll('[data-testid="stSlider"] [data-baseweb="slider"] div').forEach(e=>{const b=e.style.backgroundColor;if(b&&b.includes('255'))e.style.setProperty('background-color','#0070FF','important')});document.querySelectorAll('[data-testid="stThumbValue"]').forEach(e=>{e.style.setProperty('background','transparent','important')})}f();setInterval(f,500)})();
 </script>
 """, unsafe_allow_html=True)
 
@@ -570,133 +570,135 @@ else:
 st.markdown("---")
 
 # ════════════════════════════════════════════════════════════════════════
+# We need timespan choices from Sections 3 & 4 BEFORE rendering Section 2
+# ════════════════════════════════════════════════════════════════════════
 stock_full = prices[sel_ticker].dropna() if sel_ticker in prices.columns else pd.Series(dtype=float)
 
-# ════════════════════════════════════════════════════════════════════════
-# SECTION 2 — ASSET OVERVIEW (own timespan selector)
-# ════════════════════════════════════════════════════════════════════════
-st.markdown(f"## 2 · Asset Overview — {sel_label}")
-s2_span = st.radio("Timespan", list(SPANS), horizontal=True, index=3, key="s2span")
-pt = trim(prices, s2_span)
-st2 = pt[sel_ticker].dropna() if sel_ticker in pt.columns else pd.Series(dtype=float)
-if len(st2) >= 25:
-    slr = logr(st2)
-    sy = (st2.index[-1]-st2.index[0]).days/365.25
-    scagr = (st2.iloc[-1]/st2.iloc[0])**(1/sy)-1 if sy>0 and st2.iloc[0]>0 else 0
-    m1,m2,m3,m4,m5 = st.columns(5)
-    m1.metric("Last Close", f"{st2.iloc[-1]:,.2f}")
-    m2.metric("CAGR", f"{scagr:.2%}")
-    ar2 = slr.mean()*TD; av2 = slr.std()*np.sqrt(TD)
-    m3.metric("Ann. Return", f"{ar2:.2%}")
-    m4.metric("Ann. Volatility", f"{av2:.2%}")
-    m5.metric("Sharpe Ratio", f"{(ar2-RF)/av2 if av2 else 0:.3f}")
-else:
-    st.warning(f"⚠️ Insufficient data for **{sel_label}** in {s2_span} window.")
-rows = {lbl: compute_metrics(pt, t) for lbl, t in TICKERS.items()}
-st.table(pd.DataFrame(rows).T.rename_axis("Asset"))
-
+sec2 = st.container()
 st.markdown("---")
-
-# ════════════════════════════════════════════════════════════════════════
-# SECTION 3 — SET INDEX FORECAST
-# ════════════════════════════════════════════════════════════════════════
-st.markdown("## 3 · SET Index Forecast")
-if len(set_full) < 100:
-    st.error("⚠️ Not enough SET data."); s3_span = "1Y"; s3_cutoff = None
-else:
-    s3c1, s3c2 = st.columns([2, 1])
-    with s3c1:
-        s3_span = st.radio("Training start (lookback)", list(SPANS), horizontal=True, index=3, key="s3span")
-    with s3c2:
-        default_cutoff = set_full.index[-1] - pd.DateOffset(years=1)
-        s3_cutoff = st.date_input(
-            "Train/Test cutoff date",
-            value=default_cutoff.date(),
-            min_value=set_full.index[50].date(),
-            max_value=set_full.index[-1].date(),
-            key="s3cutoff",
-        )
-
+sec3 = st.container()
 st.markdown("---")
+sec4 = st.container()
 
-# ════════════════════════════════════════════════════════════════════════
-# SECTION 4 — STOCK FORECAST
-# ════════════════════════════════════════════════════════════════════════
-st.markdown(f"## 4 · Stock Forecast — {sel_label} vs SET Index")
-if len(stock_full) < 100 or len(set_full) < 100:
-    st.error("⚠️ Not enough data."); s4_span = "1Y"; s4_cutoff = None
-else:
-    s4c1, s4c2 = st.columns([2, 1])
-    with s4c1:
-        s4_span = st.radio("Training start (lookback)", list(SPANS), horizontal=True, index=3, key="s4span")
-    with s4c2:
-        default_cutoff4 = stock_full.index[-1] - pd.DateOffset(years=1)
-        s4_cutoff = st.date_input(
-            "Train/Test cutoff date",
-            value=default_cutoff4.date(),
-            min_value=stock_full.index[50].date(),
-            max_value=stock_full.index[-1].date(),
-            key="s4cutoff",
-        )
+# ── Section 3: SET Index Forecast (get timespan + cutoff) ─────────────
+with sec3:
+    st.markdown("## 3 · SET Index Forecast")
+    if len(set_full) < 100:
+        st.error("⚠️ Not enough SET data."); s3_span = "1Y"; s3_cutoff = None
+    else:
+        s3c1, s3c2 = st.columns([2, 1])
+        with s3c1:
+            s3_span = st.radio("Training start (lookback)", list(SPANS), horizontal=True, index=3, key="s3span")
+        with s3c2:
+            # Default cutoff: 1 year ago
+            default_cutoff = set_full.index[-1] - pd.DateOffset(years=1)
+            s3_cutoff = st.date_input(
+                "Train/Test cutoff date",
+                value=default_cutoff.date(),
+                min_value=set_full.index[50].date(),
+                max_value=set_full.index[-1].date(),
+                key="s3cutoff",
+            )
+
+# ── Section 4: Stock Forecast (get timespan + cutoff) ─────────────────
+with sec4:
+    st.markdown(f"## 4 · Stock Forecast — {sel_label} vs SET Index")
+    if len(stock_full) < 100 or len(set_full) < 100:
+        st.error("⚠️ Not enough data."); s4_span = "1Y"; s4_cutoff = None
+    else:
+        s4c1, s4c2 = st.columns([2, 1])
+        with s4c1:
+            s4_span = st.radio("Training start (lookback)", list(SPANS), horizontal=True, index=3, key="s4span")
+        with s4c2:
+            default_cutoff4 = stock_full.index[-1] - pd.DateOffset(years=1)
+            s4_cutoff = st.date_input(
+                "Train/Test cutoff date",
+                value=default_cutoff4.date(),
+                min_value=stock_full.index[50].date(),
+                max_value=stock_full.index[-1].date(),
+                key="s4cutoff",
+            )
+
+# ── Section 2: Asset Overview (synced with Section 4 timespan) ────────
+with sec2:
+    st.markdown(f"## 2 · Asset Overview — {sel_label}")
+    st.caption(f"📅 Metrics computed over **{s4_span}** window (synced with Section 4)")
+    pt = trim(prices, s4_span)
+    st2 = pt[sel_ticker].dropna() if sel_ticker in pt.columns else pd.Series(dtype=float)
+    if len(st2) >= 25:
+        slr = logr(st2)
+        sy = (st2.index[-1]-st2.index[0]).days/365.25
+        scagr = (st2.iloc[-1]/st2.iloc[0])**(1/sy)-1 if sy>0 and st2.iloc[0]>0 else 0
+        m1,m2,m3,m4,m5 = st.columns(5)
+        m1.metric("Last Close", f"{st2.iloc[-1]:,.2f}")
+        m2.metric("CAGR", f"{scagr:.2%}")
+        ar2 = slr.mean()*TD; av2 = slr.std()*np.sqrt(TD)
+        m3.metric("Ann. Return", f"{ar2:.2%}")
+        m4.metric("Ann. Volatility", f"{av2:.2%}")
+        m5.metric("Sharpe Ratio", f"{(ar2-RF)/av2 if av2 else 0:.3f}")
+    else:
+        st.warning(f"⚠️ Insufficient data for **{sel_label}** in {s4_span} window.")
+    rows = {lbl: compute_metrics(pt, t) for lbl, t in TICKERS.items()}
+    st.table(pd.DataFrame(rows).T.rename_axis("Asset"))
 
 # ── Section 3: SET Index Forecast (models) ────────────────────────────
-if len(set_full) >= 100:
-    hist_set = trim(set_full.to_frame(), s3_span)[BENCHMARK].dropna()
-    if len(hist_set) < 2:
-        st.warning("Not enough data.")
-    else:
-        st.caption(f"📅 Training data starts from **{hist_set.index[0].strftime('%d %b %Y')}** "
-                   f"(cutoff: **{pd.Timestamp(s3_cutoff).strftime('%d %b %Y') if s3_cutoff else 'auto'}**)")
-        MODELS_SET = [
-            ("3.1","Random Walk (GBM)", random_walk_forecast, "🎲 Simulating …", GREEN),
-            ("3.2","ARIMA (p, 0, q)", arima_forecast, "🔍 Grid-searching ARIMA …", GREEN),
-            ("3.3","GARCH (p, q)", garch_forecast, "📈 Fitting GARCH …", GREEN),
-            ("3.4","XGBoost", xgboost_forecast, "🌲 Training XGBoost …", ORANGE),
-        ]
-        for num, name, fn, spinner_msg, color in MODELS_SET:
-            has_lib = (HAS_TS if "ARIMA" in name or "GARCH" in name else
-                       HAS_XGB if "XGBoost" in name else True)
-            if not has_lib:
-                st.info(f"{name} unavailable — install required packages.")
-                continue
-            st.markdown(f"### {num} · {name}")
-            with st.spinner(spinner_msg):
-                render_model_block(
-                    series=hist_set, hist_main=hist_set, hist_bench=None,
-                    forecast_fn=fn, model_name=name, span_key=s3_span,
-                    prices=prices, ticker=BENCHMARK, h=fh, cutoff_date=s3_cutoff,
-                    line_color=color, is_benchmark=True)
-
-st.markdown("---")
+with sec3:
+    if len(set_full) >= 100:
+        hist_set = trim(set_full.to_frame(), s3_span)[BENCHMARK].dropna()
+        if len(hist_set) < 2:
+            st.warning("Not enough data.")
+        else:
+            st.caption(f"📅 Training data starts from **{hist_set.index[0].strftime('%d %b %Y')}** "
+                       f"(cutoff: **{pd.Timestamp(s3_cutoff).strftime('%d %b %Y') if s3_cutoff else 'auto'}**)")
+            MODELS_SET = [
+                ("3.1","Random Walk (GBM)", random_walk_forecast, "🎲 Simulating …", GREEN),
+                ("3.2","ARIMA (p, 0, q)", arima_forecast, "🔍 Grid-searching ARIMA …", GREEN),
+                ("3.3","GARCH (p, q)", garch_forecast, "📈 Fitting GARCH …", GREEN),
+                ("3.4","XGBoost", xgboost_forecast, "🌲 Training XGBoost …", ORANGE),
+            ]
+            for num, name, fn, spinner_msg, color in MODELS_SET:
+                has_lib = (HAS_TS if "ARIMA" in name or "GARCH" in name else
+                           HAS_XGB if "XGBoost" in name else True)
+                if not has_lib:
+                    st.info(f"{name} unavailable — install required packages.")
+                    continue
+                st.markdown(f"### {num} · {name}")
+                with st.spinner(spinner_msg):
+                    render_model_block(
+                        series=hist_set, hist_main=hist_set, hist_bench=None,
+                        forecast_fn=fn, model_name=name, span_key=s3_span,
+                        prices=prices, ticker=BENCHMARK, h=fh, cutoff_date=s3_cutoff,
+                        line_color=color, is_benchmark=True)
 
 # ── Section 4: Stock Forecast (models) ────────────────────────────────
-if len(stock_full) >= 100 and len(set_full) >= 100:
-    hist_stk = trim(stock_full.to_frame(), s4_span)[sel_ticker].dropna()
-    hist_bench = trim(set_full.to_frame(), s4_span)[BENCHMARK].dropna()
-    if len(hist_stk) < 2 or len(hist_bench) < 2:
-        st.warning("Not enough data.")
-    else:
-        st.caption(f"📅 Training data starts from **{hist_stk.index[0].strftime('%d %b %Y')}** "
-                   f"(cutoff: **{pd.Timestamp(s4_cutoff).strftime('%d %b %Y') if s4_cutoff else 'auto'}**)")
-        MODELS_STK = [
-            ("4.1","Random Walk (GBM)", random_walk_forecast, "🎲 Simulating …", GREEN),
-            ("4.2","ARIMA (p, 0, q)", arima_forecast, "🔍 Grid-searching ARIMA …", GREEN),
-            ("4.3","GARCH (p, q)", garch_forecast, "📈 Fitting GARCH …", GREEN),
-            ("4.4","XGBoost", xgboost_forecast, "🌲 Training XGBoost …", ORANGE),
-        ]
-        for num, name, fn, spinner_msg, color in MODELS_STK:
-            has_lib = (HAS_TS if "ARIMA" in name or "GARCH" in name else
-                       HAS_XGB if "XGBoost" in name else True)
-            if not has_lib:
-                st.info(f"{name} unavailable — install required packages.")
-                continue
-            st.markdown(f"### {num} · {name}")
-            with st.spinner(spinner_msg):
-                render_model_block(
-                    series=hist_stk, hist_main=hist_stk, hist_bench=hist_bench,
-                    forecast_fn=fn, model_name=name, span_key=s4_span,
-                    prices=prices, ticker=sel_ticker, h=fh, cutoff_date=s4_cutoff,
-                    line_color=color, is_benchmark=False)
+with sec4:
+    if len(stock_full) >= 100 and len(set_full) >= 100:
+        hist_stk = trim(stock_full.to_frame(), s4_span)[sel_ticker].dropna()
+        hist_bench = trim(set_full.to_frame(), s4_span)[BENCHMARK].dropna()
+        if len(hist_stk) < 2 or len(hist_bench) < 2:
+            st.warning("Not enough data.")
+        else:
+            st.caption(f"📅 Training data starts from **{hist_stk.index[0].strftime('%d %b %Y')}** "
+                       f"(cutoff: **{pd.Timestamp(s4_cutoff).strftime('%d %b %Y') if s4_cutoff else 'auto'}**)")
+            MODELS_STK = [
+                ("4.1","Random Walk (GBM)", random_walk_forecast, "🎲 Simulating …", GREEN),
+                ("4.2","ARIMA (p, 0, q)", arima_forecast, "🔍 Grid-searching ARIMA …", GREEN),
+                ("4.3","GARCH (p, q)", garch_forecast, "📈 Fitting GARCH …", GREEN),
+                ("4.4","XGBoost", xgboost_forecast, "🌲 Training XGBoost …", ORANGE),
+            ]
+            for num, name, fn, spinner_msg, color in MODELS_STK:
+                has_lib = (HAS_TS if "ARIMA" in name or "GARCH" in name else
+                           HAS_XGB if "XGBoost" in name else True)
+                if not has_lib:
+                    st.info(f"{name} unavailable — install required packages.")
+                    continue
+                st.markdown(f"### {num} · {name}")
+                with st.spinner(spinner_msg):
+                    render_model_block(
+                        series=hist_stk, hist_main=hist_stk, hist_bench=hist_bench,
+                        forecast_fn=fn, model_name=name, span_key=s4_span,
+                        prices=prices, ticker=sel_ticker, h=fh, cutoff_date=s4_cutoff,
+                        line_color=color, is_benchmark=False)
 
 # ════════════════════════════════════════════════════════════════════════
 # FOOTER
