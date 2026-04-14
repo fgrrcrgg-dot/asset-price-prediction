@@ -364,9 +364,11 @@ def forecast_chart_single(hist, bt_pred, bt_dates, fut_pred, fut_dates, name, mo
     fig.add_trace(go.Scatter(x=fut_dates,y=fut_pred,mode="lines",
         line=dict(color=fc,width=2.5,dash="dot"),name=f"Forecast ({model})"))
     if cutoff_date is not None:
-        fig.add_vline(x=pd.Timestamp(cutoff_date), line_dash="longdash", line_color="#888", line_width=1,
-                      annotation_text="Cutoff", annotation_position="top left",
-                      annotation_font_size=10, annotation_font_color="#888")
+        cd_str = pd.Timestamp(cutoff_date).strftime("%Y-%m-%d")
+        fig.add_vline(x=cd_str, line_dash="longdash", line_color="#888", line_width=1)
+        fig.add_annotation(x=cd_str, y=1, yref="paper", text="Cutoff",
+                           showarrow=False, font=dict(size=10, color="#888"),
+                           xanchor="right", yanchor="top")
     fig.update_layout(title=f"{model} — {name}",**CL)
     fig.update_xaxes(**AX); fig.update_yaxes(**AX)
     return fig
@@ -384,9 +386,11 @@ def forecast_chart_dual(hist_bench, hist_stock, bt_pred, bt_dates, fut_pred, fut
     fig.add_trace(go.Scatter(x=fut_dates,y=fut_pred,mode="lines",
         line=dict(color=fc,width=2.5,dash="dot"),name=f"Forecast ({model})"),secondary_y=True)
     if cutoff_date is not None:
-        fig.add_vline(x=pd.Timestamp(cutoff_date), line_dash="longdash", line_color="#888", line_width=1,
-                      annotation_text="Cutoff", annotation_position="top left",
-                      annotation_font_size=10, annotation_font_color="#888")
+        cd_str = pd.Timestamp(cutoff_date).strftime("%Y-%m-%d")
+        fig.add_vline(x=cd_str, line_dash="longdash", line_color="#888", line_width=1)
+        fig.add_annotation(x=cd_str, y=1, yref="paper", text="Cutoff",
+                           showarrow=False, font=dict(size=10, color="#888"),
+                           xanchor="right", yanchor="top")
     fig.update_layout(title=f"{model} — {stock_name} vs {bench_name}",**CL)
     fig.update_yaxes(title_text=bench_name,secondary_y=False,**AX)
     fig.update_yaxes(title_text=stock_name,secondary_y=True,**AX)
