@@ -101,7 +101,9 @@ div[data-baseweb="calendar"] td,
 div[data-baseweb="calendar"] tr,
 div[data-baseweb="calendar"] table,
 div[data-baseweb="calendar"] thead,
-div[data-baseweb="calendar"] tbody {
+div[data-baseweb="calendar"] tbody,
+div[data-baseweb="calendar"] [role="gridcell"],
+div[data-baseweb="calendar"] [role="presentation"] {
     background-color: #FFFFFF !important;
     background: #FFFFFF !important;
     color: #1a1a2e !important;
@@ -130,6 +132,10 @@ div[data-baseweb="calendar"] button:disabled {
     background-color: #FFFFFF !important !important;
     color: #c0c4cc !important;
 }
+/* Keyboard focus indicator - make it white */
+div[data-baseweb="calendar"] [role="gridcell"] {
+    background-color: #FFFFFF !important;
+}
 /* Selected day — RED */
 div[data-baseweb="calendar"] button[aria-selected="true"],
 div[data-baseweb="calendar"] button[aria-checked="true"],
@@ -149,12 +155,20 @@ div[data-baseweb="calendar"] th {
     background-color: #FFFFFF !important;
     color: #808495 !important;
 }
+/* Top bar, borders, separators */
+div[data-baseweb="calendar"] hr {
+    border-color: #e0e5ec !important;
+}
+div[data-baseweb="calendar"] [role="separator"] {
+    background-color: transparent !important;
+}
 /* Popover */
 div[data-baseweb="popover"] {
     background: #FFFFFF !important;
 }
 div[data-baseweb="popover"] > div,
-div[data-baseweb="popover"] > div > div {
+div[data-baseweb="popover"] > div > div,
+div[data-baseweb="popover"] > div > div > div {
     background: #FFFFFF !important;
 }
 /* Date input */
@@ -176,29 +190,86 @@ div[data-testid="stDateInput"] > div > div {
 <script>
 (function(){
 function fixCalendar(){
-  // Fix all calendar elements - force white
+  // Fix all calendar elements - force white and remove black backgrounds
   document.querySelectorAll('[data-baseweb="calendar"]').forEach(cal=>{
+    // Fix every single element in the calendar
     cal.querySelectorAll('*').forEach(e=>{
-      const styles=window.getComputedStyle(e);
-      const bgColor=styles.backgroundColor;
-      // Check if background is black or near-black
-      if(bgColor==='rgb(0, 0, 0)'||bgColor==='rgba(0, 0, 0, 1)'||bgColor.includes('rgb(0,')){
-        e.style.setProperty('background-color','#FFFFFF','!important');
-        e.style.setProperty('background','#FFFFFF','!important');
+      // Check computed style
+      const computed = window.getComputedStyle(e);
+      const bgColor = computed.backgroundColor;
+      const color = computed.color;
+      const border = computed.borderColor;
+      
+      // List of black color variants to catch
+      const isBlack = bgColor === 'rgb(0, 0, 0)' || 
+                     bgColor === 'rgba(0, 0, 0, 1)' ||
+                     bgColor === '#000000' ||
+                     bgColor === '#000' ||
+                     bgColor.includes('rgb(0, 0, 0)');
+      
+      if(isBlack){
+        e.style.setProperty('background-color', '#FFFFFF', 'important');
+        e.style.setProperty('background', '#FFFFFF', 'important');
       }
-      // Also check inline styles
-      if(e.style.backgroundColor==='rgb(0, 0, 0)'||e.style.backgroundColor==='#000000'){
-        e.style.setProperty('background-color','#FFFFFF','!important');
+      
+      // Also remove black borders and colors that might be dark
+      if(border === 'rgb(0, 0, 0)' || border === '#000000' || border === '#000'){
+        e.style.setProperty('border-color', '#e0e5ec', 'important');
+      }
+    });
+    
+    // Force white on all divs in calendar
+    cal.querySelectorAll('div').forEach(div=>{
+      const computed = window.getComputedStyle(div);
+      if(computed.backgroundColor === 'rgb(0, 0, 0)' || computed.backgroundColor.includes('rgb(0, 0, 0)')){
+        div.style.setProperty('background-color', '#FFFFFF', 'important');
+        div.style.setProperty('background', '#FFFFFF', 'important');
+      }
+    });
+    
+    // Target and fix gridcells (keyboard indicator)
+    cal.querySelectorAll('[role="gridcell"]').forEach(cell=>{
+      cell.style.setProperty('background-color', '#FFFFFF', 'important');
+      cell.style.setProperty('box-shadow', 'none', 'important');
+      cell.style.setProperty('border-color', 'transparent', 'important');
+      const computed = window.getComputedStyle(cell);
+      if(computed.backgroundColor === 'rgb(0, 0, 0)'){
+        cell.style.setProperty('background-color', '#FFFFFF', 'important');
+      }
+    });
+    
+    // Force white on presentation elements
+    cal.querySelectorAll('[role="presentation"]').forEach(el=>{
+      el.style.setProperty('background-color', '#FFFFFF', 'important');
+    });
+  });
+  
+  // Fix popover as well
+  document.querySelectorAll('[data-baseweb="popover"]').forEach(pop=>{
+    pop.style.setProperty('background-color', '#FFFFFF', 'important');
+    pop.querySelectorAll('*').forEach(e=>{
+      const computed = window.getComputedStyle(e);
+      if(computed.backgroundColor === 'rgb(0, 0, 0)' || computed.backgroundColor.includes('rgb(0, 0, 0)')){
+        e.style.setProperty('background-color', '#FFFFFF', 'important');
       }
     });
   });
+  
   // Fix slider
   document.querySelectorAll('[data-testid="stSlider"] div[role="progressbar"]').forEach(e=>{
-    e.style.setProperty('background-color','#0070FF','!important');
+    e.style.setProperty('background-color','#0070FF','important');
   });
 }
+
 fixCalendar();
-setInterval(fixCalendar,200);
+// Run every 50ms to catch dynamic changes immediately
+setInterval(fixCalendar, 50);
+
+// Also watch for new calendars being added to DOM
+const observer = new MutationObserver(()=>{ fixCalendar(); });
+observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+})();
+</script>
 })();
 </script>
 """, unsafe_allow_html=True)
