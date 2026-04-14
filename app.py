@@ -123,104 +123,93 @@ div[data-testid="stDateInput"] > div > div { background: #FFFFFF !important; bor
 <script>
 (function(){
 function bruteForceCalendar(){
+  // Nuclear option: iterate through EVERY element in calendar
   document.querySelectorAll('[data-baseweb="calendar"]').forEach(cal=>{
-    // 1. Hide any SVG that might be causing black boxes
-    const svgs = cal.querySelectorAll('svg');
-    svgs.forEach(svg => {
-      svg.style.display = 'none';
-      svg.style.visibility = 'hidden';
-    });
-    
-    // 2. Walk every child element
-    const walker = document.createTreeWalker(
-      cal,
-      NodeFilter.SHOW_ELEMENT,
-      null,
-      false
-    );
-    
-    let node;
-    while(node = walker.nextNode()) {
-      // Force white on everything
-      node.style.backgroundColor = '#FFFFFF';
-      node.style.background = '#FFFFFF';
+    // Get ALL descendants and force white
+    const allElements = cal.querySelectorAll('*');
+    for(let i = 0; i < allElements.length; i++){
+      const el = allElements[i];
       
-      // Remove black fills/strokes if SVG
-      if(node.tagName === 'SVG' || node.tagName === 'RECT' || node.tagName === 'PATH' || node.tagName === 'CIRCLE'){
-        node.style.display = 'none';
-        node.style.fill = 'none';
-        node.style.stroke = 'none';
-        continue;
+      // Always force white background - direct assignment
+      el.style.backgroundColor = '#FFFFFF';
+      el.style.background = '#FFFFFF';
+      
+      // Remove any inline black colors
+      if(el.style.color === 'rgb(0, 0, 0)' || el.style.color === '#000000'){
+        el.style.color = '#1a1a2e';
       }
       
-      // Check for inline black
-      const computed = window.getComputedStyle(node);
+      // Check computed style and forcefully override black
+      const computed = window.getComputedStyle(el);
       if(computed.backgroundColor === 'rgb(0, 0, 0)' || 
-         computed.backgroundColor === 'rgba(0, 0, 0, 1)'){
-        node.style.setProperty('background-color', '#FFFFFF', 'important');
-        node.style.setProperty('background', '#FFFFFF', 'important');
-      }
-      
-      // Handle buttons
-      if(node.tagName === 'BUTTON'){
-        node.style.backgroundColor = '#FFFFFF';
-        node.style.background = '#FFFFFF';
-        node.style.color = '#1a1a2e';
-        node.style.border = 'none';
-        
-        if(node.getAttribute('aria-selected') === 'true' || 
-           node.getAttribute('aria-checked') === 'true' ||
-           node.getAttribute('aria-pressed') === 'true'){
-          node.style.backgroundColor = '#E74C3C';
-          node.style.background = '#E74C3C';
-          node.style.color = '#FFFFFF';
-        }
-        if(node.getAttribute('aria-label')){
-          node.style.background = 'transparent';
-          node.style.color = '#0070FF';
-        }
-      }
-      
-      // Handle gridcells
-      if(node.getAttribute('role') === 'gridcell'){
-        node.style.backgroundColor = '#FFFFFF';
-        node.style.background = '#FFFFFF';
-        node.style.boxShadow = 'none';
-        node.style.borderColor = 'transparent';
+         computed.backgroundColor === 'rgba(0, 0, 0, 1)' ||
+         computed.backgroundColor === '#000000'){
+        el.style.setProperty('background-color', '#FFFFFF', 'important');
+        el.style.setProperty('background', '#FFFFFF', 'important');
       }
     }
+    
+    // Also walk through divs specifically
+    const allDivs = cal.getElementsByTagName('div');
+    for(let i = 0; i < allDivs.length; i++){
+      allDivs[i].style.backgroundColor = '#FFFFFF';
+      allDivs[i].style.background = '#FFFFFF';
+    }
+    
+    // Walk through buttons
+    const allButtons = cal.getElementsByTagName('button');
+    for(let i = 0; i < allButtons.length; i++){
+      const btn = allButtons[i];
+      btn.style.backgroundColor = '#FFFFFF';
+      btn.style.background = '#FFFFFF';
+      btn.style.color = '#1a1a2e';
+      if(btn.getAttribute('aria-selected') === 'true' || 
+         btn.getAttribute('aria-checked') === 'true' ||
+         btn.getAttribute('aria-pressed') === 'true'){
+        btn.style.backgroundColor = '#E74C3C';
+        btn.style.background = '#E74C3C';
+        btn.style.color = '#FFFFFF';
+      }
+      if(btn.getAttribute('aria-label')){
+        btn.style.background = 'transparent';
+        btn.style.color = '#0070FF';
+      }
+    }
+    
+    // Force gridcells
+    const gridcells = cal.querySelectorAll('[role="gridcell"]');
+    gridcells.forEach(cell => {
+      cell.style.backgroundColor = '#FFFFFF';
+      cell.style.background = '#FFFFFF';
+      cell.style.boxShadow = 'none';
+      cell.style.borderColor = 'transparent';
+    });
   });
   
-  // 3. Also fix popovers
+  // Do the same for popovers
   document.querySelectorAll('[data-baseweb="popover"]').forEach(pop=>{
     pop.style.backgroundColor = '#FFFFFF';
     pop.style.background = '#FFFFFF';
-    
-    const walker2 = document.createTreeWalker(
-      pop,
-      NodeFilter.SHOW_ELEMENT,
-      null,
-      false
-    );
-    
-    let node2;
-    while(node2 = walker2.nextNode()) {
-      node2.style.backgroundColor = '#FFFFFF';
-      node2.style.background = '#FFFFFF';
-    }
+    const allInPop = pop.querySelectorAll('*');
+    allInPop.forEach(el=>{
+      el.style.backgroundColor = '#FFFFFF';
+      el.style.background = '#FFFFFF';
+    });
   });
 }
 
 bruteForceCalendar();
-// Run EXTREMELY aggressively
-setInterval(bruteForceCalendar, 10);
+// Run VERY aggressively - every 25ms
+setInterval(bruteForceCalendar, 25);
 
-// Watch for changes
+// Watch for ANY changes
 const observer = new MutationObserver(bruteForceCalendar);
 observer.observe(document.body, { 
   childList: true, 
   subtree: true, 
-  attributes: true
+  attributes: true,
+  attributeOldValue: false,
+  characterData: false
 });
 })();
 </script>
