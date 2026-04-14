@@ -109,7 +109,8 @@ div[data-baseweb="calendar"] tbody {
 /* Calendar container and month/year header */
 div[data-baseweb="calendar"] > div,
 div[data-baseweb="calendar"] > div > div,
-div[data-baseweb="calendar"] > div > div > div {
+div[data-baseweb="calendar"] > div > div > div,
+div[data-baseweb="calendar"] > div > div > div > div {
     background: #FFFFFF !important;
 }
 /* Navigation arrows */
@@ -167,21 +168,15 @@ div[data-testid="stDateInput"] > div > div {
     background: #FFFFFF !important;
     border-color: #0070FF !important;
 }
-/* Out-of-range / disabled days - MUST be white */
+/* Out-of-range / disabled days and week cells - MUST be white */
 div[data-baseweb="calendar"] button:disabled,
 div[data-baseweb="calendar"] button[disabled],
-div[data-baseweb="calendar"] [aria-disabled="true"] {
+div[data-baseweb="calendar"] [aria-disabled="true"],
+div[data-baseweb="calendar"] [role="gridcell"],
+div[data-baseweb="calendar"] div[role="row"] > div {
     background: #FFFFFF !important;
     color: #c0c4cc !important;
     border: none !important;
-}
-/* Catch-all for any remaining black backgrounds */
-div[data-baseweb="calendar"] *[style*="rgb(0, 0, 0)"],
-div[data-baseweb="calendar"] *[style*="#000000"],
-div[data-baseweb="popover"] *[style*="rgb(0, 0, 0)"],
-div[data-baseweb="popover"] *[style*="#000000"] {
-    background-color: #FFFFFF !important !important;
-    background: #FFFFFF !important !important;
 }
 .disclaimer-box{background:#FFF8E1;border-left:4px solid #FFB300;padding:14px 18px;border-radius:6px;font-size:.85rem;color:#5D4037!important;margin-top:24px;line-height:1.55}
 .stats-card{background:#f8f9fb;border:1px solid #e0e5ec;border-radius:10px;padding:18px 20px;margin-bottom:12px}
@@ -191,7 +186,7 @@ div[data-baseweb="popover"] *[style*="#000000"] {
 .stats-card .value{font-weight:700;color:#1a1a2e!important;font-family:'SF Mono','Fira Code',monospace}
 </style>
 <script>
-(function(){function f(){document.querySelectorAll('[data-testid="stSlider"] div[role="progressbar"]').forEach(e=>{e.style.setProperty('background-color','#0070FF','important')});document.querySelectorAll('[data-testid="stSlider"] [data-baseweb="slider"] div').forEach(e=>{const b=e.style.backgroundColor;if(b&&b.includes('255'))e.style.setProperty('background-color','#0070FF','important')});document.querySelectorAll('[data-testid="stThumbValue"]').forEach(e=>{e.style.setProperty('background','transparent','important')})}f();setInterval(f,500)})();
+(function(){function f(){document.querySelectorAll('[data-baseweb="calendar"] *').forEach(e=>{if(e.style.backgroundColor==='rgb(0, 0, 0)'||e.style.backgroundColor==='#000000'||e.style.backgroundColor==='#000'){e.style.setProperty('background-color','#FFFFFF','important');e.style.setProperty('background','#FFFFFF','important')}});document.querySelectorAll('[data-testid="stSlider"] div[role="progressbar"]').forEach(e=>{e.style.setProperty('background-color','#0070FF','important')});document.querySelectorAll('[data-testid="stSlider"] [data-baseweb="slider"] div').forEach(e=>{const b=e.style.backgroundColor;if(b&&b.includes('255'))e.style.setProperty('background-color','#0070FF','important')});document.querySelectorAll('[data-testid="stThumbValue"]').forEach(e=>{e.style.setProperty('background','transparent','important')})}f();setInterval(f,500)})();
 </script>
 """, unsafe_allow_html=True)
 
@@ -638,11 +633,11 @@ with sec4:
                 key="s4cutoff",
             )
 
-# ── Section 2: Asset Overview (synced with Section 4 timespan) ────────
+# ── Section 2: Asset Overview (with independent timespan) ────────
 with sec2:
     st.markdown(f"## 2 · Asset Overview — {sel_label}")
-    st.caption(f"📅 Metrics computed over **{s4_span}** window (synced with Section 4)")
-    pt = trim(prices, s4_span)
+    s2_span = st.radio("Timespan", list(SPANS), horizontal=True, index=3, key="s2span")
+    pt = trim(prices, s2_span)
     st2 = pt[sel_ticker].dropna() if sel_ticker in pt.columns else pd.Series(dtype=float)
     if len(st2) >= 25:
         slr = logr(st2)
@@ -656,7 +651,7 @@ with sec2:
         m4.metric("Ann. Volatility", f"{av2:.2%}")
         m5.metric("Sharpe Ratio", f"{(ar2-RF)/av2 if av2 else 0:.3f}")
     else:
-        st.warning(f"⚠️ Insufficient data for **{sel_label}** in {s4_span} window.")
+        st.warning(f"⚠️ Insufficient data for **{sel_label}** in {s2_span} window.")
     rows = {lbl: compute_metrics(pt, t) for lbl, t in TICKERS.items()}
     st.table(pd.DataFrame(rows).T.rename_axis("Asset"))
 
