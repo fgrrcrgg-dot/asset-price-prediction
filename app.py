@@ -118,7 +118,7 @@ div[data-baseweb="calendar"] button[aria-label] {
     color: #0070FF !important;
     border: none !important;
 }
-/* Day cells */
+/* Day cells - ALL buttons in calendar */
 div[data-baseweb="calendar"] button {
     background: #FFFFFF !important;
     color: #1a1a2e !important;
@@ -126,6 +126,9 @@ div[data-baseweb="calendar"] button {
 }
 div[data-baseweb="calendar"] button:hover {
     background: #EBF3FF !important;
+}
+div[data-baseweb="calendar"] button:focus {
+    background: #FFFFFF !important;
 }
 /* Selected day — RED */
 div[data-baseweb="calendar"] button[aria-selected="true"],
@@ -164,12 +167,21 @@ div[data-testid="stDateInput"] > div > div {
     background: #FFFFFF !important;
     border-color: #0070FF !important;
 }
-/* Out-of-range / disabled days */
+/* Out-of-range / disabled days - MUST be white */
 div[data-baseweb="calendar"] button:disabled,
-div[data-baseweb="calendar"] button[disabled] {
+div[data-baseweb="calendar"] button[disabled],
+div[data-baseweb="calendar"] [aria-disabled="true"] {
     background: #FFFFFF !important;
     color: #c0c4cc !important;
     border: none !important;
+}
+/* Catch-all for any remaining black backgrounds */
+div[data-baseweb="calendar"] *[style*="rgb(0, 0, 0)"],
+div[data-baseweb="calendar"] *[style*="#000000"],
+div[data-baseweb="popover"] *[style*="rgb(0, 0, 0)"],
+div[data-baseweb="popover"] *[style*="#000000"] {
+    background-color: #FFFFFF !important !important;
+    background: #FFFFFF !important !important;
 }
 .disclaimer-box{background:#FFF8E1;border-left:4px solid #FFB300;padding:14px 18px;border-radius:6px;font-size:.85rem;color:#5D4037!important;margin-top:24px;line-height:1.55}
 .stats-card{background:#f8f9fb;border:1px solid #e0e5ec;border-radius:10px;padding:18px 20px;margin-bottom:12px}
