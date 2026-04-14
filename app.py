@@ -175,41 +175,54 @@ def compute_metrics(prices, ticker):
 # ════════════════════════════════════════════════════════════════════════
 # BACKTEST + RMSFE HELPER
 # ════════════════════════════════════════════════════════════════════════
-def backtest_and_forecast(series, forecast_fn, h):
-    """Split series into train/test. Fit on train, produce:
-    - backtest predictions (on test period)
-    - future forecast (beyond test)
-    - RMSFE on backtest
-    - stats dict from model
-    Returns: (backtest_prices, backtest_dates, future_prices, future_dates, stats)
+def backtest_and_forecast(series, forecast_fn, h, cutoff_date=None):
+    """Split series at cutoff_date (or last h obs if None).
+    - Train on data BEFORE cutoff → model params come from train only
+    - Backtest = predict from cutoff to end of series
+    - Forecast = predict h steps beyond end of series from full data
     """
-    if len(series) < h + 100:
-        return None, None, None, None, {"Error": "Insufficient data"}
-    train = series.iloc[:-h]
-    test = series.iloc[-h:]
+    if cutoff_date is not None:
+        cutoff = pd.Timestamp(cutoff_date)
+        train = series.loc[series.index < cutoff]
+        test = series.loc[series.index >= cutoff]
+    else:
+        if len(series) < h + 100:
+            return None, None, None, None, {"Error": "Insufficient data"}
+        train = series.iloc[:-h]
+        test = series.iloc[-h:]
+
+    if len(train) < 50:
+        return None, None, None, None, {"Error": "Training period too short (need ≥50 obs)"}
+
+    bt_h = len(test) if len(test) > 0 else h
+
+    # Fit on TRAIN only → stats reflect the training period
     try:
-        bt_pred, stats = forecast_fn(train, h)
-        bt_pred = np.array(bt_pred)
+        bt_pred, stats = forecast_fn(train, max(bt_h, 1))
+        bt_pred = np.array(bt_pred)[:len(test)] if len(test) > 0 else None
+    except Exception as e:
+        bt_pred = None
+        stats = {"Error": str(e)[:80]}
+
+    # RMSFE on backtest period
+    if bt_pred is not None and len(test) > 0:
         actual = test.values
         n = min(len(actual), len(bt_pred))
         rmsfe = float(np.sqrt(np.mean((actual[:n] - bt_pred[:n])**2)))
         stats["RMSFE"] = f"{rmsfe:.2f}"
-    except Exception as e:
-        bt_pred = np.full(h, float(train.iloc[-1]))
-        stats = {"Error": str(e)[:80]}
-        rmsfe = np.nan
+    else:
         stats["RMSFE"] = "N/A"
 
-    # Now forecast future from full series
+    bt_dates = test.index if len(test) > 0 else None
+
+    # Forecast future from full series
     try:
         fut_pred, _ = forecast_fn(series, h)
         fut_pred = np.array(fut_pred)
     except Exception:
         fut_pred = np.full(h, float(series.iloc[-1]))
 
-    bt_dates = test.index
-    last_date = series.index[-1]
-    fut_dates = pd.bdate_range(start=last_date + timedelta(days=1), periods=h)
+    fut_dates = pd.bdate_range(start=series.index[-1] + timedelta(days=1), periods=h)
 
     return bt_pred, bt_dates, fut_pred, fut_dates, stats
 
@@ -341,8 +354,7 @@ def price_chart(df, title):
     fig.update_xaxes(**AX); fig.update_yaxes(**AX)
     return fig
 
-def forecast_chart_single(hist, bt_pred, bt_dates, fut_pred, fut_dates, name, model, fc=GREEN):
-    """Single-series forecast chart with backtest line."""
+def forecast_chart_single(hist, bt_pred, bt_dates, fut_pred, fut_dates, name, model, cutoff_date=None, fc=GREEN):
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=hist.index,y=hist.values,mode="lines",
         line=dict(color=BLUE,width=1.5),name=f"{name} (hist)",opacity=0.7))
@@ -351,13 +363,16 @@ def forecast_chart_single(hist, bt_pred, bt_dates, fut_pred, fut_dates, name, mo
             line=dict(color=PURPLE,width=2,dash="dash"),name=f"Backtest ({model})"))
     fig.add_trace(go.Scatter(x=fut_dates,y=fut_pred,mode="lines",
         line=dict(color=fc,width=2.5,dash="dot"),name=f"Forecast ({model})"))
+    if cutoff_date is not None:
+        fig.add_vline(x=pd.Timestamp(cutoff_date), line_dash="longdash", line_color="#888", line_width=1,
+                      annotation_text="Cutoff", annotation_position="top left",
+                      annotation_font_size=10, annotation_font_color="#888")
     fig.update_layout(title=f"{model} — {name}",**CL)
     fig.update_xaxes(**AX); fig.update_yaxes(**AX)
     return fig
 
 def forecast_chart_dual(hist_bench, hist_stock, bt_pred, bt_dates, fut_pred, fut_dates,
-                        bench_name, stock_name, model, fc=GREEN):
-    """Dual-axis forecast chart with backtest line."""
+                        bench_name, stock_name, model, cutoff_date=None, fc=GREEN):
     fig = make_subplots(specs=[[{"secondary_y":True}]])
     fig.add_trace(go.Scatter(x=hist_bench.index,y=hist_bench.values,mode="lines",
         line=dict(color=BLUE,width=1.5),name=f"{bench_name} (hist)",opacity=0.6),secondary_y=False)
@@ -368,6 +383,10 @@ def forecast_chart_dual(hist_bench, hist_stock, bt_pred, bt_dates, fut_pred, fut
             line=dict(color=PURPLE,width=2,dash="dash"),name=f"Backtest ({model})"),secondary_y=True)
     fig.add_trace(go.Scatter(x=fut_dates,y=fut_pred,mode="lines",
         line=dict(color=fc,width=2.5,dash="dot"),name=f"Forecast ({model})"),secondary_y=True)
+    if cutoff_date is not None:
+        fig.add_vline(x=pd.Timestamp(cutoff_date), line_dash="longdash", line_color="#888", line_width=1,
+                      annotation_text="Cutoff", annotation_position="top left",
+                      annotation_font_size=10, annotation_font_color="#888")
     fig.update_layout(title=f"{model} — {stock_name} vs {bench_name}",**CL)
     fig.update_yaxes(title_text=bench_name,secondary_y=False,**AX)
     fig.update_yaxes(title_text=stock_name,secondary_y=True,**AX)
@@ -380,25 +399,35 @@ def stats_card(title, stats):
 
 
 def render_model_block(series, hist_main, hist_bench, forecast_fn, model_name,
-                       span_key, prices, ticker, h, line_color=GREEN,
-                       is_benchmark=False):
-    """Render one model: chart (with backtest) + stats panel."""
-    bt_pred, bt_dates, fut_pred, fut_dates, model_stats = backtest_and_forecast(series, forecast_fn, h)
+                       span_key, prices, ticker, h, cutoff_date,
+                       line_color=GREEN, is_benchmark=False):
+    """Render one model with cutoff-based train/test split."""
+    bt_pred, bt_dates, fut_pred, fut_dates, model_stats = backtest_and_forecast(
+        series, forecast_fn, h, cutoff_date=cutoff_date)
 
-    # Backtest period info
-    if bt_dates is not None and len(bt_dates) > 0:
-        model_stats["Backtest from"] = bt_dates[0].strftime("%d %b %Y")
-        model_stats["Backtest to"] = bt_dates[-1].strftime("%d %b %Y")
-        model_stats["Backtest days"] = str(len(bt_dates))
+    # Add train/backtest period info to stats
+    cutoff_ts = pd.Timestamp(cutoff_date) if cutoff_date else None
+    if cutoff_ts:
+        train_data = series.loc[series.index < cutoff_ts]
+        test_data = series.loc[series.index >= cutoff_ts]
+    else:
+        train_data = series.iloc[:-h]
+        test_data = series.iloc[-h:]
+    if len(train_data) > 0:
+        model_stats["Train period"] = f"{train_data.index[0].strftime('%d %b %Y')} → {train_data.index[-1].strftime('%d %b %Y')}"
+        model_stats["Train size"] = f"{len(train_data):,} obs"
+    if len(test_data) > 0:
+        model_stats["Backtest period"] = f"{test_data.index[0].strftime('%d %b %Y')} → {test_data.index[-1].strftime('%d %b %Y')}"
+        model_stats["Backtest size"] = f"{len(test_data):,} obs"
 
     cc, cs = st.columns([3, 1])
     with cc:
         if is_benchmark:
             fig = forecast_chart_single(hist_main, bt_pred, bt_dates, fut_pred, fut_dates,
-                                        "SET Index", model_name, fc=line_color)
+                                        "SET Index", model_name, cutoff_date=cutoff_date, fc=line_color)
         else:
             fig = forecast_chart_dual(hist_bench, hist_main, bt_pred, bt_dates, fut_pred, fut_dates,
-                                      "SET Index", ticker, model_name, fc=line_color)
+                                      "SET Index", ticker, model_name, cutoff_date=cutoff_date, fc=line_color)
         st.plotly_chart(fig, use_container_width=True)
     with cs:
         stats_card("Model Parameters", model_stats)
@@ -473,21 +502,44 @@ sec3 = st.container()
 st.markdown("---")
 sec4 = st.container()
 
-# ── Section 3: SET Index Forecast (get timespan) ──────────────────────
+# ── Section 3: SET Index Forecast (get timespan + cutoff) ─────────────
 with sec3:
     st.markdown("## 3 · SET Index Forecast")
     if len(set_full) < 100:
-        st.error("⚠️ Not enough SET data."); s3_span = "1Y"
+        st.error("⚠️ Not enough SET data."); s3_span = "1Y"; s3_cutoff = None
     else:
-        s3_span = st.radio("Historical window", list(SPANS), horizontal=True, index=3, key="s3span")
+        s3c1, s3c2 = st.columns([2, 1])
+        with s3c1:
+            s3_span = st.radio("Historical window", list(SPANS), horizontal=True, index=3, key="s3span")
+        with s3c2:
+            # Default cutoff: 1 year ago
+            default_cutoff = set_full.index[-1] - pd.DateOffset(years=1)
+            s3_cutoff = st.date_input(
+                "Train/Test cutoff date",
+                value=default_cutoff.date(),
+                min_value=set_full.index[50].date(),
+                max_value=set_full.index[-1].date(),
+                key="s3cutoff",
+            )
 
-# ── Section 4: Stock Forecast (get timespan) ──────────────────────────
+# ── Section 4: Stock Forecast (get timespan + cutoff) ─────────────────
 with sec4:
     st.markdown(f"## 4 · Stock Forecast — {sel_label} vs SET Index")
     if len(stock_full) < 100 or len(set_full) < 100:
-        st.error("⚠️ Not enough data."); s4_span = "1Y"
+        st.error("⚠️ Not enough data."); s4_span = "1Y"; s4_cutoff = None
     else:
-        s4_span = st.radio("Historical window", list(SPANS), horizontal=True, index=3, key="s4span")
+        s4c1, s4c2 = st.columns([2, 1])
+        with s4c1:
+            s4_span = st.radio("Historical window", list(SPANS), horizontal=True, index=3, key="s4span")
+        with s4c2:
+            default_cutoff4 = stock_full.index[-1] - pd.DateOffset(years=1)
+            s4_cutoff = st.date_input(
+                "Train/Test cutoff date",
+                value=default_cutoff4.date(),
+                min_value=stock_full.index[50].date(),
+                max_value=stock_full.index[-1].date(),
+                key="s4cutoff",
+            )
 
 # ── Section 2: Asset Overview (synced with Section 4 timespan) ────────
 with sec2:
@@ -535,8 +587,8 @@ with sec3:
                     render_model_block(
                         series=set_full, hist_main=hist_set, hist_bench=None,
                         forecast_fn=fn, model_name=name, span_key=s3_span,
-                        prices=prices, ticker=BENCHMARK, h=fh, line_color=color,
-                        is_benchmark=True)
+                        prices=prices, ticker=BENCHMARK, h=fh, cutoff_date=s3_cutoff,
+                        line_color=color, is_benchmark=True)
 
 # ── Section 4: Stock Forecast (models) ────────────────────────────────
 with sec4:
@@ -563,8 +615,8 @@ with sec4:
                     render_model_block(
                         series=stock_full, hist_main=hist_stk, hist_bench=hist_bench,
                         forecast_fn=fn, model_name=name, span_key=s4_span,
-                        prices=prices, ticker=sel_ticker, h=fh, line_color=color,
-                        is_benchmark=False)
+                        prices=prices, ticker=sel_ticker, h=fh, cutoff_date=s4_cutoff,
+                        line_color=color, is_benchmark=False)
 
 # ════════════════════════════════════════════════════════════════════════
 # FOOTER
