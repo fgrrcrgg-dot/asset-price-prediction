@@ -94,23 +94,74 @@ hr{border-color:#e0e5ec!important}
 div[data-baseweb="calendar"],
 div[data-baseweb="calendar"] *,
 div[data-baseweb="datepicker"],
-div[data-baseweb="datepicker"] * {
+div[data-baseweb="datepicker"] *,
+div[data-baseweb="calendar"] div,
+div[data-baseweb="calendar"] span,
+div[data-baseweb="calendar"] td,
+div[data-baseweb="calendar"] tr,
+div[data-baseweb="calendar"] table,
+div[data-baseweb="calendar"] thead,
+div[data-baseweb="calendar"] tbody {
     background-color: #FFFFFF !important;
+    background: #FFFFFF !important;
     color: #1a1a2e !important;
+}
+/* Calendar container and month/year header */
+div[data-baseweb="calendar"] > div,
+div[data-baseweb="calendar"] > div > div {
+    background: #FFFFFF !important;
+}
+/* Navigation arrows */
+div[data-baseweb="calendar"] button[aria-label] {
+    background: transparent !important;
+    color: #0070FF !important;
+}
+/* Day cells */
+div[data-baseweb="calendar"] button {
+    background: #FFFFFF !important;
+    color: #1a1a2e !important;
+}
+div[data-baseweb="calendar"] button:hover {
+    background: #EBF3FF !important;
 }
 /* Selected day */
 div[data-baseweb="calendar"] button[aria-selected="true"],
 div[data-baseweb="calendar"] div[role="gridcell"] button[aria-checked="true"] {
-    background: #E74C3C !important; /* Red fill */
+    background: #0070FF !important;
     color: #FFFFFF !important;
 }
 /* Day-of-week headers (Mo Tu We...) */
-div[data-baseweb="calendar"] [role="columnheader"] {
+div[data-baseweb="calendar"] [role="columnheader"],
+div[data-baseweb="calendar"] th {
     color: #808495 !important;
+    background: #FFFFFF !important;
+}
+/* Month/year dropdown selects */
+div[data-baseweb="calendar"] select,
+div[data-baseweb="calendar"] [data-baseweb="select"] {
+    background: #FFFFFF !important;
+    color: #1a1a2e !important;
+}
+/* The popover wrapper that contains the calendar */
+div[data-baseweb="popover"] > div,
+div[data-baseweb="popover"] > div > div,
+div[data-baseweb="popover"] > div > div > div {
+    background: #FFFFFF !important;
+}
+/* Date input field */
+div[data-testid="stDateInput"] input {
+    background: #FFFFFF !important;
+    color: #1a1a2e !important;
+    border-color: #0070FF !important;
+}
+div[data-testid="stDateInput"] > div > div {
+    background: #FFFFFF !important;
+    border-color: #0070FF !important;
 }
 /* Out-of-range / disabled days */
 div[data-baseweb="calendar"] button:disabled,
 div[data-baseweb="calendar"] button[disabled] {
+    background: #FFFFFF !important;
     color: #c0c4cc !important;
 }
 .disclaimer-box{background:#FFF8E1;border-left:4px solid #FFB300;padding:14px 18px;border-radius:6px;font-size:.85rem;color:#5D4037!important;margin-top:24px;line-height:1.55}
