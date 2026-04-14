@@ -90,7 +90,7 @@ div[data-testid="stTable"] td{background:#FFF!important;color:#1a1a2e!important;
 div[data-testid="stTable"] tr:hover td{background:#f8f9fb!important}
 div[data-testid="stDataFrame"],div[data-testid="stDataFrame"] *{background:#FFF!important;color:#1a1a2e!important}
 hr{border-color:#e0e5ec!important}
-/* ═══ Date picker — force white everywhere ═══ */
+/* ═══ Date picker — force white everywhere with red selection ═══ */
 div[data-baseweb="calendar"],
 div[data-baseweb="calendar"] *,
 div[data-baseweb="datepicker"],
@@ -108,27 +108,32 @@ div[data-baseweb="calendar"] tbody {
 }
 /* Calendar container and month/year header */
 div[data-baseweb="calendar"] > div,
-div[data-baseweb="calendar"] > div > div {
+div[data-baseweb="calendar"] > div > div,
+div[data-baseweb="calendar"] > div > div > div {
     background: #FFFFFF !important;
 }
 /* Navigation arrows */
 div[data-baseweb="calendar"] button[aria-label] {
     background: transparent !important;
     color: #0070FF !important;
+    border: none !important;
 }
 /* Day cells */
 div[data-baseweb="calendar"] button {
     background: #FFFFFF !important;
     color: #1a1a2e !important;
+    border: none !important;
 }
 div[data-baseweb="calendar"] button:hover {
     background: #EBF3FF !important;
 }
-/* Selected day */
+/* Selected day — RED */
 div[data-baseweb="calendar"] button[aria-selected="true"],
-div[data-baseweb="calendar"] div[role="gridcell"] button[aria-checked="true"] {
-    background: #0070FF !important;
+div[data-baseweb="calendar"] div[role="gridcell"] button[aria-checked="true"],
+div[data-baseweb="calendar"] button[aria-pressed="true"] {
+    background: #E74C3C !important;
     color: #FFFFFF !important;
+    border: none !important;
 }
 /* Day-of-week headers (Mo Tu We...) */
 div[data-baseweb="calendar"] [role="columnheader"],
@@ -143,6 +148,7 @@ div[data-baseweb="calendar"] [data-baseweb="select"] {
     color: #1a1a2e !important;
 }
 /* The popover wrapper that contains the calendar */
+div[data-baseweb="popover"],
 div[data-baseweb="popover"] > div,
 div[data-baseweb="popover"] > div > div,
 div[data-baseweb="popover"] > div > div > div {
@@ -163,6 +169,7 @@ div[data-baseweb="calendar"] button:disabled,
 div[data-baseweb="calendar"] button[disabled] {
     background: #FFFFFF !important;
     color: #c0c4cc !important;
+    border: none !important;
 }
 .disclaimer-box{background:#FFF8E1;border-left:4px solid #FFB300;padding:14px 18px;border-radius:6px;font-size:.85rem;color:#5D4037!important;margin-top:24px;line-height:1.55}
 .stats-card{background:#f8f9fb;border:1px solid #e0e5ec;border-radius:10px;padding:18px 20px;margin-bottom:12px}
