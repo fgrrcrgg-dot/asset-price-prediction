@@ -514,7 +514,7 @@ with sec3:
     else:
         s3c1, s3c2 = st.columns([2, 1])
         with s3c1:
-            s3_span = st.radio("Historical window", list(SPANS), horizontal=True, index=3, key="s3span")
+            s3_span = st.radio("Training start (lookback)", list(SPANS), horizontal=True, index=3, key="s3span")
         with s3c2:
             # Default cutoff: 1 year ago
             default_cutoff = set_full.index[-1] - pd.DateOffset(years=1)
@@ -534,7 +534,7 @@ with sec4:
     else:
         s4c1, s4c2 = st.columns([2, 1])
         with s4c1:
-            s4_span = st.radio("Historical window", list(SPANS), horizontal=True, index=3, key="s4span")
+            s4_span = st.radio("Training start (lookback)", list(SPANS), horizontal=True, index=3, key="s4span")
         with s4c2:
             default_cutoff4 = stock_full.index[-1] - pd.DateOffset(years=1)
             s4_cutoff = st.date_input(
@@ -574,6 +574,8 @@ with sec3:
         if len(hist_set) < 2:
             st.warning("Not enough data.")
         else:
+            st.caption(f"📅 Training data starts from **{hist_set.index[0].strftime('%d %b %Y')}** "
+                       f"(cutoff: **{pd.Timestamp(s3_cutoff).strftime('%d %b %Y') if s3_cutoff else 'auto'}**)")
             MODELS_SET = [
                 ("3.1","Random Walk (GBM)", random_walk_forecast, "🎲 Simulating …", GREEN),
                 ("3.2","ARIMA (p, 0, q)", arima_forecast, "🔍 Grid-searching ARIMA …", GREEN),
@@ -589,7 +591,7 @@ with sec3:
                 st.markdown(f"### {num} · {name}")
                 with st.spinner(spinner_msg):
                     render_model_block(
-                        series=set_full, hist_main=hist_set, hist_bench=None,
+                        series=hist_set, hist_main=hist_set, hist_bench=None,
                         forecast_fn=fn, model_name=name, span_key=s3_span,
                         prices=prices, ticker=BENCHMARK, h=fh, cutoff_date=s3_cutoff,
                         line_color=color, is_benchmark=True)
@@ -602,6 +604,8 @@ with sec4:
         if len(hist_stk) < 2 or len(hist_bench) < 2:
             st.warning("Not enough data.")
         else:
+            st.caption(f"📅 Training data starts from **{hist_stk.index[0].strftime('%d %b %Y')}** "
+                       f"(cutoff: **{pd.Timestamp(s4_cutoff).strftime('%d %b %Y') if s4_cutoff else 'auto'}**)")
             MODELS_STK = [
                 ("4.1","Random Walk (GBM)", random_walk_forecast, "🎲 Simulating …", GREEN),
                 ("4.2","ARIMA (p, 0, q)", arima_forecast, "🔍 Grid-searching ARIMA …", GREEN),
@@ -617,7 +621,7 @@ with sec4:
                 st.markdown(f"### {num} · {name}")
                 with st.spinner(spinner_msg):
                     render_model_block(
-                        series=stock_full, hist_main=hist_stk, hist_bench=hist_bench,
+                        series=hist_stk, hist_main=hist_stk, hist_bench=hist_bench,
                         forecast_fn=fn, model_name=name, span_key=s4_span,
                         prices=prices, ticker=sel_ticker, h=fh, cutoff_date=s4_cutoff,
                         line_color=color, is_benchmark=False)
