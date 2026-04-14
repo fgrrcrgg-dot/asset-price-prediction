@@ -90,29 +90,80 @@ div[data-testid="stTable"] td{background:#FFF!important;color:#1a1a2e!important;
 div[data-testid="stTable"] tr:hover td{background:#f8f9fb!important}
 div[data-testid="stDataFrame"],div[data-testid="stDataFrame"] *{background:#FFF!important;color:#1a1a2e!important}
 hr{border-color:#e0e5ec!important}
-/* ═══ BRUTE FORCE Calendar styling ═══ */
-div[data-baseweb="calendar"] { background: #FFFFFF !important; }
-div[data-baseweb="calendar"] * { background: #FFFFFF !important; background-color: #FFFFFF !important; }
-div[data-baseweb="calendar"] div { background: #FFFFFF !important; background-color: #FFFFFF !important; }
-div[data-baseweb="calendar"] button { background: #FFFFFF !important; background-color: #FFFFFF !important; color: #1a1a2e !important; border: none !important; }
-div[data-baseweb="calendar"] button:hover { background: #EBF3FF !important; background-color: #EBF3FF !important; }
-div[data-baseweb="calendar"] button:focus { background: #FFFFFF !important; background-color: #FFFFFF !important; }
-div[data-baseweb="calendar"] button:disabled { background: #FFFFFF !important; background-color: #FFFFFF !important; color: #c0c4cc !important; }
-div[data-baseweb="calendar"] button[aria-selected="true"] { background: #E74C3C !important; background-color: #E74C3C !important; color: #FFFFFF !important; }
-div[data-baseweb="calendar"] button[aria-checked="true"] { background: #E74C3C !important; background-color: #E74C3C !important; color: #FFFFFF !important; }
-div[data-baseweb="calendar"] button[aria-pressed="true"] { background: #E74C3C !important; background-color: #E74C3C !important; color: #FFFFFF !important; }
-div[data-baseweb="calendar"] [role="gridcell"] { background: #FFFFFF !important; background-color: #FFFFFF !important; box-shadow: none !important; }
-div[data-baseweb="calendar"] [role="row"] { background: #FFFFFF !important; background-color: #FFFFFF !important; }
-div[data-baseweb="calendar"] [role="presentation"] { background: #FFFFFF !important; background-color: #FFFFFF !important; }
-div[data-baseweb="calendar"] button[aria-label] { background: transparent !important; color: #0070FF !important; }
-div[data-baseweb="calendar"] [role="columnheader"] { background: #FFFFFF !important; background-color: #FFFFFF !important; color: #808495 !important; }
-div[data-baseweb="calendar"] svg { display: none !important; }
-div[data-baseweb="calendar"] svg * { display: none !important; }
-div[data-baseweb="popover"] { background: #FFFFFF !important; background-color: #FFFFFF !important; }
-div[data-baseweb="popover"] * { background: #FFFFFF !important; background-color: #FFFFFF !important; }
-div[data-testid="stDateInput"] input { background: #FFFFFF !important; color: #1a1a2e !important; border-color: #0070FF !important; }
-div[data-testid="stDateInput"] > div > div { background: #FFFFFF !important; border-color: #0070FF !important; }
-
+/* ═══ Date picker — force white everywhere ═══ */
+div[data-baseweb="calendar"],
+div[data-baseweb="calendar"] *,
+div[data-baseweb="datepicker"],
+div[data-baseweb="datepicker"] *,
+div[data-baseweb="calendar"] div,
+div[data-baseweb="calendar"] span,
+div[data-baseweb="calendar"] td,
+div[data-baseweb="calendar"] tr,
+div[data-baseweb="calendar"] table,
+div[data-baseweb="calendar"] thead,
+div[data-baseweb="calendar"] tbody {
+    background-color: #FFFFFF !important;
+    background: #FFFFFF !important;
+    color: #1a1a2e !important;
+}
+/* Calendar container and month/year header */
+div[data-baseweb="calendar"] > div,
+div[data-baseweb="calendar"] > div > div {
+    background: #FFFFFF !important;
+}
+/* Navigation arrows */
+div[data-baseweb="calendar"] button[aria-label] {
+    background: transparent !important;
+    color: #0070FF !important;
+}
+/* Day cells */
+div[data-baseweb="calendar"] button {
+    background: #FFFFFF !important;
+    color: #1a1a2e !important;
+}
+div[data-baseweb="calendar"] button:hover {
+    background: #EBF3FF !important;
+}
+/* Selected day */
+div[data-baseweb="calendar"] button[aria-selected="true"],
+div[data-baseweb="calendar"] div[role="gridcell"] button[aria-checked="true"] {
+    background: #0070FF !important;
+    color: #FFFFFF !important;
+}
+/* Day-of-week headers (Mo Tu We...) */
+div[data-baseweb="calendar"] [role="columnheader"],
+div[data-baseweb="calendar"] th {
+    color: #808495 !important;
+    background: #FFFFFF !important;
+}
+/* Month/year dropdown selects */
+div[data-baseweb="calendar"] select,
+div[data-baseweb="calendar"] [data-baseweb="select"] {
+    background: #FFFFFF !important;
+    color: #1a1a2e !important;
+}
+/* The popover wrapper that contains the calendar */
+div[data-baseweb="popover"] > div,
+div[data-baseweb="popover"] > div > div,
+div[data-baseweb="popover"] > div > div > div {
+    background: #FFFFFF !important;
+}
+/* Date input field */
+div[data-testid="stDateInput"] input {
+    background: #FFFFFF !important;
+    color: #1a1a2e !important;
+    border-color: #0070FF !important;
+}
+div[data-testid="stDateInput"] > div > div {
+    background: #FFFFFF !important;
+    border-color: #0070FF !important;
+}
+/* Out-of-range / disabled days */
+div[data-baseweb="calendar"] button:disabled,
+div[data-baseweb="calendar"] button[disabled] {
+    background: #FFFFFF !important;
+    color: #c0c4cc !important;
+}
 .disclaimer-box{background:#FFF8E1;border-left:4px solid #FFB300;padding:14px 18px;border-radius:6px;font-size:.85rem;color:#5D4037!important;margin-top:24px;line-height:1.55}
 .stats-card{background:#f8f9fb;border:1px solid #e0e5ec;border-radius:10px;padding:18px 20px;margin-bottom:12px}
 .stats-card h4{color:#0070FF!important;font-size:.9rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;border-bottom:2px solid #D6EAFF;padding-bottom:6px}
@@ -121,97 +172,7 @@ div[data-testid="stDateInput"] > div > div { background: #FFFFFF !important; bor
 .stats-card .value{font-weight:700;color:#1a1a2e!important;font-family:'SF Mono','Fira Code',monospace}
 </style>
 <script>
-(function(){
-function bruteForceCalendar(){
-  // Nuclear option: iterate through EVERY element in calendar
-  document.querySelectorAll('[data-baseweb="calendar"]').forEach(cal=>{
-    // Get ALL descendants and force white
-    const allElements = cal.querySelectorAll('*');
-    for(let i = 0; i < allElements.length; i++){
-      const el = allElements[i];
-      
-      // Always force white background - direct assignment
-      el.style.backgroundColor = '#FFFFFF';
-      el.style.background = '#FFFFFF';
-      
-      // Remove any inline black colors
-      if(el.style.color === 'rgb(0, 0, 0)' || el.style.color === '#000000'){
-        el.style.color = '#1a1a2e';
-      }
-      
-      // Check computed style and forcefully override black
-      const computed = window.getComputedStyle(el);
-      if(computed.backgroundColor === 'rgb(0, 0, 0)' || 
-         computed.backgroundColor === 'rgba(0, 0, 0, 1)' ||
-         computed.backgroundColor === '#000000'){
-        el.style.setProperty('background-color', '#FFFFFF', 'important');
-        el.style.setProperty('background', '#FFFFFF', 'important');
-      }
-    }
-    
-    // Also walk through divs specifically
-    const allDivs = cal.getElementsByTagName('div');
-    for(let i = 0; i < allDivs.length; i++){
-      allDivs[i].style.backgroundColor = '#FFFFFF';
-      allDivs[i].style.background = '#FFFFFF';
-    }
-    
-    // Walk through buttons
-    const allButtons = cal.getElementsByTagName('button');
-    for(let i = 0; i < allButtons.length; i++){
-      const btn = allButtons[i];
-      btn.style.backgroundColor = '#FFFFFF';
-      btn.style.background = '#FFFFFF';
-      btn.style.color = '#1a1a2e';
-      if(btn.getAttribute('aria-selected') === 'true' || 
-         btn.getAttribute('aria-checked') === 'true' ||
-         btn.getAttribute('aria-pressed') === 'true'){
-        btn.style.backgroundColor = '#E74C3C';
-        btn.style.background = '#E74C3C';
-        btn.style.color = '#FFFFFF';
-      }
-      if(btn.getAttribute('aria-label')){
-        btn.style.background = 'transparent';
-        btn.style.color = '#0070FF';
-      }
-    }
-    
-    // Force gridcells
-    const gridcells = cal.querySelectorAll('[role="gridcell"]');
-    gridcells.forEach(cell => {
-      cell.style.backgroundColor = '#FFFFFF';
-      cell.style.background = '#FFFFFF';
-      cell.style.boxShadow = 'none';
-      cell.style.borderColor = 'transparent';
-    });
-  });
-  
-  // Do the same for popovers
-  document.querySelectorAll('[data-baseweb="popover"]').forEach(pop=>{
-    pop.style.backgroundColor = '#FFFFFF';
-    pop.style.background = '#FFFFFF';
-    const allInPop = pop.querySelectorAll('*');
-    allInPop.forEach(el=>{
-      el.style.backgroundColor = '#FFFFFF';
-      el.style.background = '#FFFFFF';
-    });
-  });
-}
-
-bruteForceCalendar();
-// Run VERY aggressively - every 25ms
-setInterval(bruteForceCalendar, 25);
-
-// Watch for ANY changes
-const observer = new MutationObserver(bruteForceCalendar);
-observer.observe(document.body, { 
-  childList: true, 
-  subtree: true, 
-  attributes: true,
-  attributeOldValue: false,
-  characterData: false
-});
-})();
+(function(){function f(){document.querySelectorAll('[data-testid="stSlider"] div[role="progressbar"]').forEach(e=>{e.style.setProperty('background-color','#0070FF','important')});document.querySelectorAll('[data-testid="stSlider"] [data-baseweb="slider"] div').forEach(e=>{const b=e.style.backgroundColor;if(b&&b.includes('255'))e.style.setProperty('background-color','#0070FF','important')});document.querySelectorAll('[data-testid="stThumbValue"]').forEach(e=>{e.style.setProperty('background','transparent','important')})}f();setInterval(f,500)})();
 </script>
 """, unsafe_allow_html=True)
 
@@ -658,11 +619,11 @@ with sec4:
                 key="s4cutoff",
             )
 
-# ── Section 2: Asset Overview (with independent timespan) ────────
+# ── Section 2: Asset Overview (synced with Section 4 timespan) ────────
 with sec2:
     st.markdown(f"## 2 · Asset Overview — {sel_label}")
-    s2_span = st.radio("Timespan", list(SPANS), horizontal=True, index=3, key="s2span")
-    pt = trim(prices, s2_span)
+    st.caption(f"📅 Metrics computed over **{s4_span}** window (synced with Section 4)")
+    pt = trim(prices, s4_span)
     st2 = pt[sel_ticker].dropna() if sel_ticker in pt.columns else pd.Series(dtype=float)
     if len(st2) >= 25:
         slr = logr(st2)
@@ -676,7 +637,7 @@ with sec2:
         m4.metric("Ann. Volatility", f"{av2:.2%}")
         m5.metric("Sharpe Ratio", f"{(ar2-RF)/av2 if av2 else 0:.3f}")
     else:
-        st.warning(f"⚠️ Insufficient data for **{sel_label}** in {s2_span} window.")
+        st.warning(f"⚠️ Insufficient data for **{sel_label}** in {s4_span} window.")
     rows = {lbl: compute_metrics(pt, t) for lbl, t in TICKERS.items()}
     st.table(pd.DataFrame(rows).T.rename_axis("Asset"))
 
