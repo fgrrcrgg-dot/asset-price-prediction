@@ -54,7 +54,13 @@ st.set_page_config(page_title="Thai Equity Prediction Model", layout="wide", pag
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
 html,body,[class*="st-"]{font-family:'Source Sans Pro',sans-serif}
+span[data-testid="stIconMaterial"],[class*="material-symbols"],[class*="material-icons"]{font-family:'Material Symbols Rounded','Material Symbols Outlined','Material Icons'!important;font-weight:normal!important;font-style:normal!important;font-size:24px;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;word-wrap:normal;direction:ltr;-webkit-font-feature-settings:'liga';-webkit-font-smoothing:antialiased}
+[data-testid="stSidebarCollapseButton"] button,button[kind="headerNoPadding"]{background-color:transparent!important;border:none!important}
+[data-testid="stSidebarCollapseButton"] button span,[data-testid="stSidebarCollapseButton"] button svg,button[kind="headerNoPadding"] span,button[kind="headerNoPadding"] svg{color:#000!important;fill:#000!important}
+[data-testid="stSidebarCollapsedControl"] button{background-color:#000!important;border:none!important;border-radius:6px!important}
+[data-testid="stSidebarCollapsedControl"] button span,[data-testid="stSidebarCollapsedControl"] button svg{color:#FFF!important;fill:#FFF!important}
 .stApp,.main,.block-container{background:#FFF!important;color:#1a1a2e!important}
 h1{font-weight:700;letter-spacing:-.5px;color:#1a1a2e!important}
 h2{font-weight:600;color:#1a1a2e!important}
