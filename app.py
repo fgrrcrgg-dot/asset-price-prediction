@@ -276,29 +276,6 @@ fix();
 setInterval(fix,250);
 })();
 </script>
-/* Date picker selected day */
-div[data-baseweb="calendar"] [aria-selected="true"],
-div[data-baseweb="calendar"] button[aria-selected="true"] {
-    background-color: #0070FF !important;
-    color: #FFFFFF !important;
-    border-radius: 50% !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-
-/* Kill the inner square — the div inside the button */
-div[data-baseweb="calendar"] [aria-selected="true"] > div,
-div[data-baseweb="calendar"] button[aria-selected="true"] > div {
-    background-color: transparent !important;
-    border-radius: 50% !important;
-    border: none !important;
-}
-
-/* Hover state for other days */
-div[data-baseweb="calendar"] button[role="gridcell"]:hover {
-    background-color: #D6EAFF !important;
-    border-radius: 50% !important;
-}
 """, unsafe_allow_html=True)
 
 
