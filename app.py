@@ -53,29 +53,6 @@ RED = "#E74C3C"; GREEN = "#27AE60"; ORANGE = "#F39C12"; PURPLE = "#8E44AD"
 st.set_page_config(page_title="Thai Equity Prediction Model", layout="wide", page_icon="📈")
 st.markdown("""
 <style>
-/* Date picker selected day */
-div[data-baseweb="calendar"] [aria-selected="true"],
-div[data-baseweb="calendar"] button[aria-selected="true"] {
-    background-color: #0070FF !important;
-    color: #FFFFFF !important;
-    border-radius: 50% !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-
-/* Kill the inner square — the div inside the button */
-div[data-baseweb="calendar"] [aria-selected="true"] > div,
-div[data-baseweb="calendar"] button[aria-selected="true"] > div {
-    background-color: transparent !important;
-    border-radius: 50% !important;
-    border: none !important;
-}
-
-/* Hover state for other days */
-div[data-baseweb="calendar"] button[role="gridcell"]:hover {
-    background-color: #D6EAFF !important;
-    border-radius: 50% !important;
-}
 @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
 html,body,[class*="st-"]{font-family:'Source Sans Pro',sans-serif}
@@ -299,6 +276,29 @@ fix();
 setInterval(fix,250);
 })();
 </script>
+/* Date picker selected day */
+div[data-baseweb="calendar"] [aria-selected="true"],
+div[data-baseweb="calendar"] button[aria-selected="true"] {
+    background-color: #0070FF !important;
+    color: #FFFFFF !important;
+    border-radius: 50% !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Kill the inner square — the div inside the button */
+div[data-baseweb="calendar"] [aria-selected="true"] > div,
+div[data-baseweb="calendar"] button[aria-selected="true"] > div {
+    background-color: transparent !important;
+    border-radius: 50% !important;
+    border: none !important;
+}
+
+/* Hover state for other days */
+div[data-baseweb="calendar"] button[role="gridcell"]:hover {
+    background-color: #D6EAFF !important;
+    border-radius: 50% !important;
+}
 """, unsafe_allow_html=True)
 
 
