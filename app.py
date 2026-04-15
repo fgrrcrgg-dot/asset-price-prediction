@@ -142,11 +142,16 @@ div[data-baseweb="calendar"] button:hover {
     background: #EBF3FF !important;
 }
 /* Selected day — solid blue circle */
-div[data-baseweb="calendar"] button[aria-selected="true"] {
+div[data-baseweb="calendar"] button[aria-selected="true"],
+div[data-baseweb="calendar"] button[aria-selected="true"] *,
+div[data-baseweb="calendar"] button[aria-selected="true"] > div {
     background: #0070FF !important;
     background-color: #0070FF !important;
     color: #FFFFFF !important;
     border-radius: 50% !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
 /* Today marker (outlined circle) */
 div[data-baseweb="calendar"] button[aria-current="date"] {
