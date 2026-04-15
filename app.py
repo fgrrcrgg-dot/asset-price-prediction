@@ -598,11 +598,11 @@ st.table(pd.DataFrame(rows).T.rename_axis("Asset"))
 st.markdown("---")
 
 # ════════════════════════════════════════════════════════════════════════
-# SECTION 3 — SET INDEX FORECAST
+# SECTION 3 — SET INDEX FORECAST (controls + models together)
 # ════════════════════════════════════════════════════════════════════════
 st.markdown("## 3 · SET Index Forecast")
 if len(set_full) < 100:
-    st.error("⚠️ Not enough SET data."); s3_span = "1Y"; s3_cutoff = None
+    st.error("⚠️ Not enough SET data.")
 else:
     s3c1, s3c2 = st.columns([2, 1])
     with s3c1:
@@ -617,36 +617,12 @@ else:
             key="s3cutoff",
         )
 
-st.markdown("---")
-
-# ════════════════════════════════════════════════════════════════════════
-# SECTION 4 — STOCK FORECAST
-# ════════════════════════════════════════════════════════════════════════
-st.markdown(f"## 4 · Stock Forecast — {sel_label} vs SET Index")
-if len(stock_full) < 100 or len(set_full) < 100:
-    st.error("⚠️ Not enough data."); s4_span = "1Y"; s4_cutoff = None
-else:
-    s4c1, s4c2 = st.columns([2, 1])
-    with s4c1:
-        s4_span = st.radio("Training start (lookback)", list(SPANS), horizontal=True, index=3, key="s4span")
-    with s4c2:
-        default_cutoff4 = stock_full.index[-1] - pd.DateOffset(years=1)
-        s4_cutoff = st.date_input(
-            "Train/Test cutoff date",
-            value=default_cutoff4.date(),
-            min_value=stock_full.index[50].date(),
-            max_value=stock_full.index[-1].date(),
-            key="s4cutoff",
-        )
-
-# ── Section 3: SET Index Forecast (models) ────────────────────────────
-if len(set_full) >= 100:
     hist_set = trim(set_full.to_frame(), s3_span)[BENCHMARK].dropna()
     if len(hist_set) < 2:
         st.warning("Not enough data.")
     else:
         st.caption(f"📅 Training data starts from **{hist_set.index[0].strftime('%d %b %Y')}** "
-                   f"(cutoff: **{pd.Timestamp(s3_cutoff).strftime('%d %b %Y') if s3_cutoff else 'auto'}**)")
+                   f"(cutoff: **{pd.Timestamp(s3_cutoff).strftime('%d %b %Y')}**)")
         MODELS_SET = [
             ("3.1","Random Walk (GBM)", random_walk_forecast, "🎲 Simulating …", GREEN),
             ("3.2","ARIMA (p, 0, q)", arima_forecast, "🔍 Grid-searching ARIMA …", GREEN),
@@ -667,15 +643,35 @@ if len(set_full) >= 100:
                     prices=prices, ticker=BENCHMARK, h=fh, cutoff_date=s3_cutoff,
                     line_color=color, is_benchmark=True)
 
-# ── Section 4: Stock Forecast (models) ────────────────────────────────
-if len(stock_full) >= 100 and len(set_full) >= 100:
+st.markdown("---")
+
+# ════════════════════════════════════════════════════════════════════════
+# SECTION 4 — STOCK FORECAST (controls + models together)
+# ════════════════════════════════════════════════════════════════════════
+st.markdown(f"## 4 · Stock Forecast — {sel_label} vs SET Index")
+if len(stock_full) < 100 or len(set_full) < 100:
+    st.error("⚠️ Not enough data.")
+else:
+    s4c1, s4c2 = st.columns([2, 1])
+    with s4c1:
+        s4_span = st.radio("Training start (lookback)", list(SPANS), horizontal=True, index=3, key="s4span")
+    with s4c2:
+        default_cutoff4 = stock_full.index[-1] - pd.DateOffset(years=1)
+        s4_cutoff = st.date_input(
+            "Train/Test cutoff date",
+            value=default_cutoff4.date(),
+            min_value=stock_full.index[50].date(),
+            max_value=stock_full.index[-1].date(),
+            key="s4cutoff",
+        )
+
     hist_stk = trim(stock_full.to_frame(), s4_span)[sel_ticker].dropna()
     hist_bench = trim(set_full.to_frame(), s4_span)[BENCHMARK].dropna()
     if len(hist_stk) < 2 or len(hist_bench) < 2:
         st.warning("Not enough data.")
     else:
         st.caption(f"📅 Training data starts from **{hist_stk.index[0].strftime('%d %b %Y')}** "
-                   f"(cutoff: **{pd.Timestamp(s4_cutoff).strftime('%d %b %Y') if s4_cutoff else 'auto'}**)")
+                   f"(cutoff: **{pd.Timestamp(s4_cutoff).strftime('%d %b %Y')}**)")
         MODELS_STK = [
             ("4.1","Random Walk (GBM)", random_walk_forecast, "🎲 Simulating …", GREEN),
             ("4.2","ARIMA (p, 0, q)", arima_forecast, "🔍 Grid-searching ARIMA …", GREEN),
