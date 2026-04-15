@@ -90,33 +90,44 @@ div[data-testid="stTable"] td{background:#FFF!important;color:#1a1a2e!important;
 div[data-testid="stTable"] tr:hover td{background:#f8f9fb!important}
 div[data-testid="stDataFrame"],div[data-testid="stDataFrame"] *{background:#FFF!important;color:#1a1a2e!important}
 hr{border-color:#e0e5ec!important}
-/* ═══ Date picker — force white everywhere ═══ */
+/* ═══ Date picker — force white EVERYWHERE (nuclear) ═══ */
+/* Popover body — the outermost dark wrapper */
+div[data-baseweb="popover"],
+div[data-baseweb="popover"] > div,
+div[data-baseweb="popover"] > div > div,
+div[data-baseweb="popover"] > div > div > div,
+div[data-baseweb="popover"] > div > div > div > div,
+div[data-baseweb="popover"] [data-baseweb="calendar"],
+div[data-baseweb="popover"] [data-baseweb="datepicker"] {
+    background: #FFFFFF !important;
+    background-color: #FFFFFF !important;
+    border-color: #e0e5ec !important;
+}
+/* Every single descendant in calendar */
 div[data-baseweb="calendar"],
 div[data-baseweb="calendar"] *,
 div[data-baseweb="datepicker"],
-div[data-baseweb="datepicker"] *,
-div[data-baseweb="calendar"] div,
-div[data-baseweb="calendar"] span,
-div[data-baseweb="calendar"] td,
-div[data-baseweb="calendar"] tr,
-div[data-baseweb="calendar"] table,
-div[data-baseweb="calendar"] thead,
-div[data-baseweb="calendar"] tbody {
+div[data-baseweb="datepicker"] * {
     background-color: #FFFFFF !important;
     background: #FFFFFF !important;
     color: #1a1a2e !important;
 }
-/* Calendar container and month/year header */
-div[data-baseweb="calendar"] > div,
-div[data-baseweb="calendar"] > div > div {
+/* Grid cells — including empty overflow cells */
+div[data-baseweb="calendar"] [role="gridcell"],
+div[data-baseweb="calendar"] [role="gridcell"] > div,
+div[data-baseweb="calendar"] [role="row"],
+div[data-baseweb="calendar"] [role="row"] > div,
+div[data-baseweb="calendar"] [role="grid"],
+div[data-baseweb="calendar"] [role="grid"] > div {
     background: #FFFFFF !important;
+    background-color: #FFFFFF !important;
 }
 /* Navigation arrows */
 div[data-baseweb="calendar"] button[aria-label] {
     background: transparent !important;
     color: #0070FF !important;
 }
-/* Day cells */
+/* Day buttons — white bg */
 div[data-baseweb="calendar"] button {
     background: #FFFFFF !important;
     color: #1a1a2e !important;
@@ -124,29 +135,36 @@ div[data-baseweb="calendar"] button {
 div[data-baseweb="calendar"] button:hover {
     background: #EBF3FF !important;
 }
-/* Selected day */
-div[data-baseweb="calendar"] button[aria-selected="true"],
-div[data-baseweb="calendar"] div[role="gridcell"] button[aria-checked="true"] {
+/* Selected day — solid blue circle */
+div[data-baseweb="calendar"] button[aria-selected="true"] {
+    background: #0070FF !important;
+    background-color: #0070FF !important;
+    color: #FFFFFF !important;
+    border-radius: 50% !important;
+}
+/* Today marker (outlined circle) */
+div[data-baseweb="calendar"] button[aria-current="date"] {
+    border: 2px solid #0070FF !important;
+    background: #FFFFFF !important;
+    color: #1a1a2e !important;
+}
+/* Today AND selected */
+div[data-baseweb="calendar"] button[aria-selected="true"][aria-current="date"] {
     background: #0070FF !important;
     color: #FFFFFF !important;
+    border: 2px solid #0070FF !important;
 }
-/* Day-of-week headers (Mo Tu We...) */
+/* Day-of-week headers */
 div[data-baseweb="calendar"] [role="columnheader"],
 div[data-baseweb="calendar"] th {
     color: #808495 !important;
     background: #FFFFFF !important;
 }
-/* Month/year dropdown selects */
+/* Month/year selects */
 div[data-baseweb="calendar"] select,
 div[data-baseweb="calendar"] [data-baseweb="select"] {
     background: #FFFFFF !important;
     color: #1a1a2e !important;
-}
-/* The popover wrapper that contains the calendar */
-div[data-baseweb="popover"] > div,
-div[data-baseweb="popover"] > div > div,
-div[data-baseweb="popover"] > div > div > div {
-    background: #FFFFFF !important;
 }
 /* Date input field */
 div[data-testid="stDateInput"] input {
@@ -158,7 +176,7 @@ div[data-testid="stDateInput"] > div > div {
     background: #FFFFFF !important;
     border-color: #0070FF !important;
 }
-/* Out-of-range / disabled days */
+/* Disabled / out-of-range days */
 div[data-baseweb="calendar"] button:disabled,
 div[data-baseweb="calendar"] button[disabled] {
     background: #FFFFFF !important;
@@ -172,7 +190,85 @@ div[data-baseweb="calendar"] button[disabled] {
 .stats-card .value{font-weight:700;color:#1a1a2e!important;font-family:'SF Mono','Fira Code',monospace}
 </style>
 <script>
-(function(){function f(){document.querySelectorAll('[data-testid="stSlider"] div[role="progressbar"]').forEach(e=>{e.style.setProperty('background-color','#0070FF','important')});document.querySelectorAll('[data-testid="stSlider"] [data-baseweb="slider"] div').forEach(e=>{const b=e.style.backgroundColor;if(b&&b.includes('255'))e.style.setProperty('background-color','#0070FF','important')});document.querySelectorAll('[data-testid="stThumbValue"]').forEach(e=>{e.style.setProperty('background','transparent','important')})}f();setInterval(f,500)})();
+(function(){
+function fix(){
+  // ── Slider blue ──
+  document.querySelectorAll('[data-testid="stSlider"] div[role="progressbar"]').forEach(e=>{
+    e.style.setProperty('background-color','#0070FF','important')});
+  document.querySelectorAll('[data-testid="stSlider"] [data-baseweb="slider"] div').forEach(e=>{
+    const b=e.style.backgroundColor;
+    if(b&&b.includes('255'))e.style.setProperty('background-color','#0070FF','important')});
+  document.querySelectorAll('[data-testid="stThumbValue"]').forEach(e=>{
+    e.style.setProperty('background','transparent','important')});
+
+  // ── Calendar white — brute force every element ──
+  document.querySelectorAll('[data-baseweb="popover"], [data-baseweb="calendar"], [data-baseweb="datepicker"]').forEach(root=>{
+    // Force root white
+    root.style.setProperty('background','#FFFFFF','important');
+    root.style.setProperty('background-color','#FFFFFF','important');
+    // Force ALL descendants white
+    root.querySelectorAll('*').forEach(el=>{
+      const tag = el.tagName;
+      const role = el.getAttribute('role');
+      const sel = el.getAttribute('aria-selected');
+      // Skip selected day buttons — they get blue
+      if(tag==='BUTTON' && sel==='true'){
+        el.style.setProperty('background','#0070FF','important');
+        el.style.setProperty('background-color','#0070FF','important');
+        el.style.setProperty('color','#FFFFFF','important');
+        el.style.setProperty('border-radius','50%','important');
+        return;
+      }
+      // Everything else → white bg, dark text
+      const cs = window.getComputedStyle(el);
+      const bg = cs.backgroundColor;
+      // Parse rgb values
+      const m = bg && bg.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+      if(m){
+        const r=parseInt(m[1]),g=parseInt(m[2]),b=parseInt(m[3]);
+        // If dark (all channels < 128) → force white
+        if(r<128 && g<128 && b<128){
+          el.style.setProperty('background','#FFFFFF','important');
+          el.style.setProperty('background-color','#FFFFFF','important');
+        }
+      }
+      // Also catch inline dark backgrounds
+      if(el.style.backgroundColor){
+        const ib=el.style.backgroundColor;
+        const im=ib.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        if(im){
+          const r=parseInt(im[1]),g=parseInt(im[2]),b=parseInt(im[3]);
+          if(r<128 && g<128 && b<128){
+            el.style.setProperty('background','#FFFFFF','important');
+            el.style.setProperty('background-color','#FFFFFF','important');
+          }
+        }
+      }
+      // Ensure text is readable
+      if(tag==='BUTTON' || role==='gridcell' || tag==='DIV' || tag==='SPAN'){
+        if(!el.style.color || el.style.color===''){
+          // leave alone
+        }
+      }
+    });
+    // Fix day buttons specifically
+    root.querySelectorAll('button').forEach(btn=>{
+      const sel = btn.getAttribute('aria-selected');
+      if(sel==='true'){
+        btn.style.setProperty('background','#0070FF','important');
+        btn.style.setProperty('background-color','#0070FF','important');
+        btn.style.setProperty('color','#FFFFFF','important');
+      } else {
+        btn.style.setProperty('background','#FFFFFF','important');
+        btn.style.setProperty('background-color','#FFFFFF','important');
+        btn.style.setProperty('color','#1a1a2e','important');
+      }
+    });
+  });
+}
+fix();
+setInterval(fix,250);
+})();
 </script>
 """, unsafe_allow_html=True)
 
